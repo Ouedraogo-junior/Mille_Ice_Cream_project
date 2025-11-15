@@ -41,31 +41,43 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('two-factor.show');
 });
 
-// ==================== ON AJOUTE LE POS GLACIER (ce qui manque) ====================
 
 Route::middleware('auth')->group(function () {
 
-    // Écran caisse → tous les utilisateurs connectés (caissier + admin)
-    Route::get('/caisse', EcranCaisse::class)
+    // ==================== ÉCRAN CAISSE (accessible à tous : admin + caissier) ====================
+    Route::get('/caisse', \App\Livewire\Pos\EcranCaisse::class)
         ->name('caisse');
 
-    // Section admin → réservé UNIQUEMENT aux utilisateurs avec role = 'admin'
+    // ==================== SECTION ADMIN (réservé au rôle admin) ====================
     Route::prefix('admin')->middleware('can:admin')->group(function () {
 
-        // Page d'accueil admin
-        Route::get('/', fn() => redirect()->route('admin.produits'));
+        // DASHBOARD = PAGE D'ACCUEIL DE L'ADMIN (comme dans le cahier des charges)
+        Route::get('/', \App\Livewire\Admin\Dashboard::class)
+            ->name('admin.dashboard');
 
-        // Gestion des produits, catégories, stocks
-        Route::get('/produits', GestionProduits::class)
+        // Alias /admin/dashboard pour compatibilité (optionnel)
+        Route::get('/dashboard', \App\Livewire\Admin\Dashboard::class)
+            ->name('admin.dashboard');
+
+        // Gestion des produits
+        Route::get('/produits', \App\Livewire\Admin\GestionProduits::class)
             ->name('admin.produits');
 
-        // Gestion des caissiers (création, blocage, mot de passe)
-        Route::get('/caissiers', GestionCaissiers::class)
+        // Gestion des catégories
+        Route::get('/categories', \App\Livewire\Admin\GestionCategories::class)
+            ->name('admin.categories');
+
+        // Gestion des caissiers
+        Route::get('/caissiers', \App\Livewire\Admin\GestionCaissiers::class)
             ->name('admin.caissiers');
 
-        // Rapports : journalier, par caissier, top produits
-        Route::get('/rapports', Rapports::class)
+        // Rapports (journalier, par caissier, top produits)
+        Route::get('/rapports', \App\Livewire\Admin\Rapports::class)
             ->name('admin.rapports');
+
+        // Historique des ventes (optionnel, si tu veux séparer)
+        /* Route::get('/ventes', \App\Livewire\Admin\VentesHistorique::class)
+            ->name('admin.ventes'); */
     });
 });
 
