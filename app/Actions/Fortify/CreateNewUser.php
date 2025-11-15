@@ -6,12 +6,12 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
-use Laravel\Fortify\Rules\Password;
+
 
 class CreateNewUser implements CreatesNewUsers
 {
-    use \Laravel\Fortify\Rules\PasswordValidationRules;
-
+    use PasswordValidationRules;
+    
     public function create(array $input): User
     {
         Validator::make($input, [
