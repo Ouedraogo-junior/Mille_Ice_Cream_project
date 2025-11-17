@@ -75,6 +75,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/rapports', \App\Livewire\Admin\Rapports::class)
             ->name('admin.rapports');
 
+        Route::get('/settings', \App\Livewire\Admin\Settings::class)
+            ->name('admin.settings');    
+
         // Historique des ventes (optionnel, si tu veux séparer)
         /* Route::get('/ventes', \App\Livewire\Admin\VentesHistorique::class)
             ->name('admin.ventes'); */

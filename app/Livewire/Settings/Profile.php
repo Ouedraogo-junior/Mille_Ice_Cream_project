@@ -71,4 +71,10 @@ class Profile extends Component
 
         Session::flash('status', 'verification-link-sent');
     }
+
+    public function render()
+    {
+        return view('livewire.settings.profile')
+            ->layout('layouts.admin'); // ou le nom de votre layout
+    }
 }
