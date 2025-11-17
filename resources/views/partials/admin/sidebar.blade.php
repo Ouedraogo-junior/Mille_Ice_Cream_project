@@ -5,9 +5,18 @@
         <div class="flex flex-col items-center">
             <!-- Logo de l'entreprise -->
             <div class="w-24 h-24 mb-4 rounded-2xl bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-2xl ring-4 ring-white/40 transform hover:scale-105 transition-transform duration-300">
-                {{-- Si vous avez une image logo --}}
-                @if(file_exists(public_path('images/logo.jpeg')))
-                    <img src="{{ asset('images/logo.jpeg') }}" alt="Mille Ice Cream Logo" class="w-20 h-20 object-contain">
+                @php
+                    $logoPath = \App\Models\Setting::get('logo');
+                @endphp
+                
+                @if($logoPath && file_exists(storage_path('app/public/' . $logoPath)))
+                    <img src="{{ asset('storage/' . $logoPath) }}" 
+                         alt="Logo entreprise" 
+                         class="w-20 h-20 object-contain rounded-xl">
+                @elseif(file_exists(public_path('images/logo.jpeg')))
+                    <img src="{{ asset('images/logo.jpeg') }}" 
+                         alt="Mille Ice Cream Logo" 
+                         class="w-20 h-20 object-contain">
                 @else
                     {{-- Logo par défaut avec icône --}}
                     <i class="fas fa-ice-cream text-5xl bg-gradient-to-br from-cyan-500 to-blue-600 bg-clip-text text-transparent"></i>
@@ -16,7 +25,7 @@
             
             <!-- Nom de l'entreprise -->
             <h1 class="text-2xl font-extrabold text-white tracking-wide drop-shadow-lg">
-                Mille Ice Cream
+                {{ \App\Models\Setting::get('nom_entreprise', 'Mille Ice Cream') }}
             </h1>
             <div class="mt-3 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
                 <p class="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-2">
@@ -125,14 +134,23 @@
         </div>
 
         <!-- Paramètres -->
-        {{-- <a href="{{ route('admin.settings') ?? '#' }}" 
-           class="group flex items-center gap-3 py-3.5 px-4 rounded-xl text-sm font-semibold transition-all duration-200 text-gray-700 hover:bg-cyan-50 hover:text-cyan-700">
-            <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-gray-100 text-gray-600 group-hover:bg-cyan-200 group-hover:text-cyan-700">
+        <a href="{{ route('admin.settings') ?? '#' }}" 
+           class="group flex items-center gap-3 py-3.5 px-4 rounded-xl text-sm font-semibold transition-all duration-200
+                  {{ request()->routeIs('admin.settings') 
+                     ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30' 
+                     : 'text-gray-700 hover:bg-cyan-50 hover:text-cyan-700' }}">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center
+                        {{ request()->routeIs('admin.settings') 
+                           ? 'bg-white/20' 
+                           : 'bg-gray-100 text-gray-600 group-hover:bg-cyan-200 group-hover:text-cyan-700' }}">
                 <i class="fas fa-cog"></i>
             </div>
             <span class="flex-1">Paramètres</span>
+            @if(request()->routeIs('admin.settings'))
+                <i class="fas fa-chevron-right text-sm"></i>
+            @endif
         </a>
-    </nav> --}}
+    </nav>
 
     <!-- Déconnexion -->
     <div class="p-5 border-t border-gray-200 bg-gray-50">

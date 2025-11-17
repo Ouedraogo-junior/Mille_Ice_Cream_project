@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
@@ -7,21 +6,37 @@ use App\Models\Categorie;
 
 class GestionCategories extends Component
 {
+    // Propriétés du formulaire
     public $nom = '';
     public $couleur = 'blue';
     public $categorie_id;
     public $showForm = false;
+
+    // Propriétés pour la suppression
+    public $showDeleteModal = false;
+    public $categorieIdToDelete;
+    public $categorieNomToDelete = '';
+    public $categorieColorToDelete = '';
+    public $categorieProduitCount = 0;
 
     protected $couleurs = [
         'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald',
         'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'pink', 'rose'
     ];
 
+    // Règles de validation pour le formulaire
+    protected function rules()
+    {
+        return [
+            'nom' => 'required|string|max:255',
+            'couleur' => 'required|in:'.implode(',', $this->couleurs)
+        ];
+    }
+
     public function render()
     {
-        $categories = Categorie::all();
+        $categories = Categorie::withCount('produits')->get();
 
-        // ON PASSE $couleurs À LA VUE ICI AUSSI (OBLIGATOIRE)
         return view('livewire.admin.gestion-categories', [
             'categories' => $categories,
             'couleurs' => $this->couleurs
@@ -46,10 +61,7 @@ class GestionCategories extends Component
 
     public function sauvegarder()
     {
-        $this->validate([
-            'nom' => 'required|string|max:255',
-            'couleur' => 'required|in:'.implode(',', $this->couleurs)
-        ]);
+        $this->validate();
 
         Categorie::updateOrCreate(
             ['id' => $this->categorie_id],
@@ -57,12 +69,68 @@ class GestionCategories extends Component
         );
 
         $this->showForm = false;
-        $this->dispatch('toast', 'Catégorie sauvegardée !');
+        $this->dispatch('toast', [
+            'message' => $this->categorie_id ? 'Catégorie modifiée !' : 'Nouvelle catégorie ajoutée !',
+            'type' => 'success'
+        ]);
+
+        $this->resetErrorBag();
     }
 
-    public function desactiver($id)
+    public function toggleActive($id)
     {
-        Categorie::findOrFail($id)->update(['active' => false]);
-        $this->dispatch('toast', 'Catégorie désactivée');
+        $categorie = Categorie::findOrFail($id);
+        $categorie->active = !$categorie->active;
+        $categorie->save();
+
+        $this->dispatch('toast', [
+            'type' => $categorie->active ? 'success' : 'info',
+            'message' => $categorie->active 
+                ? 'Catégorie activée avec succès !' 
+                : 'Catégorie désactivée avec succès !'
+        ]);
+    }
+
+    public function confirmDelete($id)
+    {
+        $cat = Categorie::withCount('produits')->findOrFail($id);
+        
+        $this->categorieIdToDelete = $cat->id;
+        $this->categorieNomToDelete = $cat->nom;
+        $this->categorieColorToDelete = $cat->couleur;
+        $this->categorieProduitCount = $cat->produits_count;
+        
+        $this->showDeleteModal = true;
+    }
+
+    public function delete()
+    {
+        if ($this->categorieIdToDelete) {
+            $cat = Categorie::withCount('produits')->findOrFail($this->categorieIdToDelete);
+            
+            // VÉRIFICATION : Empêcher la suppression si des produits sont liés
+            if ($cat->produits_count > 0) {
+                $this->showDeleteModal = false;
+                
+                $this->dispatch('toast', [
+                    'message' => "Impossible de supprimer cette catégorie ! Elle contient {$cat->produits_count} produit(s). Veuillez d'abord réassigner ou supprimer ces produits.",
+                    'type' => 'error'
+                ]);
+                
+                $this->reset(['categorieIdToDelete', 'categorieNomToDelete', 'categorieColorToDelete', 'categorieProduitCount']);
+                return;
+            }
+            
+            // Suppression autorisée (aucun produit lié)
+            $cat->delete();
+            
+            $this->dispatch('toast', [
+                'message' => 'Catégorie supprimée avec succès !',
+                'type' => 'success'
+            ]);
+        }
+
+        $this->showDeleteModal = false;
+        $this->reset(['categorieIdToDelete', 'categorieNomToDelete', 'categorieColorToDelete', 'categorieProduitCount']);
     }
 }

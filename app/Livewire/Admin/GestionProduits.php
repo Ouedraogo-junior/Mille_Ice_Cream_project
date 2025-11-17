@@ -16,7 +16,13 @@ class GestionProduits extends Component
     public $search = '';
     public $categorie_filter = '';
 
-    // Formulaire
+    // Modal de suppression
+    public $showDeleteModal = false;
+    public $produitToDelete = null;
+    public $produitNomToDelete = '';
+    public $produitImageToDelete = '';
+
+    // Formulaire modification/ajout
     public $produit_id;
     public $nom;
     public $categorie_id;
@@ -117,11 +123,60 @@ class GestionProduits extends Component
         }
 
         $this->showForm = false;
-        $this->dispatch('toast', 'Produit sauvegardé avec succès !');
+        $this->resetForm();
+        $this->dispatch('toast', ['type' => 'success', 'message' => 'Produit sauvegardé avec succès !']);
+    }
+
+    // Méthode pour ouvrir le modal de confirmation de suppression
+    public function confirmDelete($id)
+    {
+        $produit = Produit::findOrFail($id);
+        $this->produitToDelete = $id;
+        $this->produitNomToDelete = $produit->nom;
+        $this->produitImageToDelete = $produit->image ?? '';
+        $this->showDeleteModal = true;
+    }
+
+    // Méthode de suppression effective
+    public function supprimer($id)
+    {
+        $produit = Produit::with('variants')->findOrFail($id);
+
+        // Supprime l'image du produit si elle existe
+        if ($produit->image) {
+            \Storage::disk('public')->delete($produit->image);
+        }
+
+        // Supprime toutes les variantes associées
+        foreach ($produit->variants as $variant) {
+            $variant->delete();
+        }
+
+        // Supprime le produit
+        $produit->delete();
+
+        // Ferme le modal
+        $this->showDeleteModal = false;
+        
+        // Réinitialise les données de suppression
+        $this->produitToDelete = null;
+        $this->produitNomToDelete = '';
+        $this->produitImageToDelete = '';
+
+        $this->dispatch('toast', [
+            'type' => 'success',
+            'message' => 'Produit supprimé avec succès !'
+        ]);
     }
 
     private function resetForm()
     {
-        $this->reset(['produit_id', 'nom', 'categorie_id', 'image', 'variants']);
+        $this->reset([
+            'produit_id', 
+            'nom', 
+            'categorie_id', 
+            'image', 
+            'variants'
+        ]);
     }
 }

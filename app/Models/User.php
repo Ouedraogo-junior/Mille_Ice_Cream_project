@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,49 +10,53 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
+        'name', 'email', 'password', 'role', 'notification_preferences'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
-        'password',
-        'two_factor_secret',
-        'two_factor_recovery_codes',
-        'remember_token',
+        'password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    // AJOUTE ÇA ICI (remplace ta fonction casts actuelle)
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'notification_preferences' => 'array', // ← Stocké en JSON dans la BDD
         ];
     }
 
-    /**
-     * Get the user's initials
-     */
+    // Valeur par défaut si jamais vide
+    public function getNotificationPreferencesAttribute($value)
+    {
+        return $value ?? [
+            'low_stock' => true,
+            'new_sale' => true,
+            'daily_report' => true,
+        ];
+    }
+
+    // Pour sauvegarder facilement
+    public function updateNotificationPreferences(array $preferences): void
+    {
+        $this->update(['notification_preferences' => $preferences]);
+    }
+
+    // Relation avec les notifications
+    public function notifications()
+    {
+        return $this->hasMany(\App\Models\Notification::class)->latest();
+    }
+
+    public function unreadNotificationsCount()
+    {
+        return $this->notifications()->where('read', false)->count();
+    }
+
     public function initials(): string
     {
         return Str::of($this->name)
@@ -64,12 +67,12 @@ class User extends Authenticatable
     }
 
     public function isAdmin()
-    {
-        return $this->role === 'admin';
+    { 
+        return $this->role === 'admin'; 
     }
 
     public function isCaissier()
-    {
-        return $this->role === 'caissier';
+    { 
+        return $this->role === 'caissier'; 
     }
 }

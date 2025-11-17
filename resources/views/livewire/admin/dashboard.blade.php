@@ -258,7 +258,7 @@
                 Tout est prêt pour une excellente journée ! 🎉
             </h3>
             <p class="text-gray-600">
-                Votre glacier <span class="font-bold text-cyan-600">Mille Ice Cream</span> est opérationnel. 
+                Votre glacier <span class="font-bold text-cyan-600">Milla Ice Cream</span> est opérationnel. 
                 Offrez à vos clients la meilleure expérience glacée !
             </p>
         </div>

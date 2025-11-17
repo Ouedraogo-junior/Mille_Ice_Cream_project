@@ -11,7 +11,7 @@ class CustomLoginResponse implements LoginResponseContract
         $user = auth()->user();
 
         return $user->role === 'admin'
-            ? redirect('/admin/produits')
+            ? redirect('/admin')
             : redirect('/caisse');
     }
 }
