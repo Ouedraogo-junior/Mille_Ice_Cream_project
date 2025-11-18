@@ -282,43 +282,78 @@
                         </svg>
                     </a>
                 </div>
-                <div class="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-                    @forelse($this->dernieresVentes as $vente)
-                        <div class="group bg-white/5 hover:bg-white/10 rounded-xl p-4 transition-all border border-white/10 cursor-pointer"
-                             wire:click="$dispatch('voir-vente', { venteId: {{ $vente->id }} })">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-lg text-xs font-bold">
-                                        {{ $vente->numero_ticket }}
-                                    </span>
-                                    <span class="text-cyan-200 text-xs">
-                                        {{ $vente->date_vente->format('H:i') }}
-                                    </span>
-                                </div>
-                                <span class="text-white font-bold text-lg">
-                                    {{ number_format($vente->total, 0) }} F
-                                </span>
-                            </div>
-                            <div class="flex items-center gap-2 text-xs text-cyan-200">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                                </svg>
-                                {{ $vente->details->sum('quantite') }} article(s)
-                                <span class="mx-1">•</span>
-                                {{ $vente->mode_paiement_libelle }}
-                            </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-12">
-                            <div class="bg-white/5 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-10 h-10 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                </svg>
-                            </div>
-                            <p class="text-cyan-200">Aucune vente pour le moment</p>
-                        </div>
-                    @endforelse
+                {{-- Dans la section "Dernières ventes" du dashboard --}}
+<div class="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+    @forelse($this->dernieresVentes as $vente)
+        <div class="group bg-white/5 hover:bg-white/10 rounded-xl p-4 transition-all border border-white/10">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                    <span class="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-lg text-xs font-bold">
+                        {{ $vente->numero_ticket }}
+                    </span>
+                    <span class="text-cyan-200 text-xs">
+                        {{ $vente->date_vente->format('H:i') }}
+                    </span>
                 </div>
+                <span class="text-white font-bold text-lg">
+                    {{ number_format($vente->total, 0) }} F
+                </span>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-xs text-cyan-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    {{ $vente->details->sum('quantite') }} article(s)
+                    <span class="mx-1">•</span>
+                    {{ $vente->mode_paiement_libelle }}
+                </div>
+                
+                {{-- Menu d'actions --}}
+                <div class="flex items-center gap-2">
+                    {{-- Voir détails --}}
+                    <a href="{{ route('ticket.pdf', $vente->id) }}"
+                            class="bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 p-2 rounded-lg transition-all"
+                            title="Voir les détails">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+</a>
+                    
+                    {{-- Imprimer ticket HTML --}}
+                    <a href="{{ route('ticket.imprimer', $vente->id) }}" 
+                       target="_blank"
+                       class="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 p-2 rounded-lg transition-all"
+                       title="Imprimer le ticket">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                        </svg>
+                    </a>
+                    
+                    {{-- Télécharger PDF --}}
+                    <a href="{{ route('ticket.pdf', $vente->id) }}" 
+                       class="bg-red-500/20 hover:bg-red-500/30 text-red-300 p-2 rounded-lg transition-all"
+                       title="Télécharger en PDF">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    @empty
+        <div class="text-center py-12">
+            <div class="bg-white/5 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+            <p class="text-cyan-200">Aucune vente pour le moment</p>
+        </div>
+    @endforelse
+</div>
             </div>
         </div>
 

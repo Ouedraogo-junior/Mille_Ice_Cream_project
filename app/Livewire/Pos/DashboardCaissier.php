@@ -28,6 +28,15 @@ class DashboardCaissier extends Component
     }
 
     /**
+     * Afficher les détails d'une vente
+     */
+public function afficherDetails($venteId)
+{
+    $this->venteSelectionnee = $venteId;
+    $this->showModal = true;
+}
+
+    /**
      * Statistiques de la semaine
      */
     #[Computed]
