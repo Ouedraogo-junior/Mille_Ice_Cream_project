@@ -41,6 +41,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('two-factor.show');
 });
 
+// ==================== SECTION CAISSE ====================
+Route::middleware(['auth', 'verified'])->group(function () {
+    
+    // ÉCRAN DE CAISSE (accessible admin + caissier)
+    Route::get('/caisse', EcranCaisse::class)
+        ->middleware('can:acces-caisse')
+        ->name('caisse');
+    
+    // HISTORIQUE VENTES CAISSIER (optionnel - à créer plus tard)
+    Route::get('/mes-ventes', \App\Livewire\Pos\MesVentes::class)
+        ->middleware('can:acces-caisse')
+        ->name('mes-ventes');
+});
 
 Route::middleware('auth')->group(function () {
 

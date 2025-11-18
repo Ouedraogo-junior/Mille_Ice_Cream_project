@@ -9,19 +9,89 @@
 </head>
 <body class="h-full bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950 text-white min-h-screen">
     
+    <!-- Menu de navigation caissier -->
+    <div class="bg-blue-950 bg-opacity-80 border-b-2 border-cyan-400">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between py-3">
+                <div class="flex items-center gap-6">
+                    <h2 class="text-xl font-bold text-cyan-300">🍦 GLACIER POS</h2>
+                    <nav class="hidden md:flex gap-2">
+                        <a href="{{ route('caisse') }}" 
+                           class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('caisse') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                            💰 Caisse
+                        </a>
+                        <a href="{{ route('mes-ventes') }}" 
+                           class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('mes-ventes') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                            📋 Historique
+                        </a>
+                        <a href="{{ route('profile.edit') }}" 
+                           class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('profile.edit') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                            ⚙️ Profil
+                        </a>
+                    </nav>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <!-- Menu mobile -->
+                    <div class="md:hidden" x-data="{ open: false }">
+                        <button @click="open = !open" class="text-white p-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown mobile -->
+                        <div x-show="open" 
+                             @click.away="open = false"
+                             x-transition
+                             class="absolute right-4 top-16 bg-blue-900 rounded-lg shadow-xl border-2 border-cyan-400 py-2 w-48 z-50">
+                            <a href="{{ route('caisse') }}" class="block px-4 py-2 text-white hover:bg-cyan-500 transition">
+                                💰 Caisse
+                            </a>
+                            <a href="{{ route('mes-ventes') }}" class="block px-4 py-2 text-white hover:bg-cyan-500 transition">
+                                📋 Historique
+                            </a>
+                            <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-white hover:bg-cyan-500 transition">
+                                ⚙️ Profil
+                            </a>
+                            <hr class="border-cyan-400 my-2">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-2 text-red-300 hover:bg-red-600 hover:text-white transition">
+                                    🚪 Déconnexion
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Déconnexion desktop -->
+                    <form method="POST" action="{{ route('logout') }}" class="hidden md:block">
+                        @csrf
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition">
+                            🚪 Déconnexion
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Contenu principal -->
-    <div class="container mx-auto px-4 py-8">
+    <div class="pb-20">
         {{ $slot }}
     </div>
-
+    
     <!-- Pied de page fixe avec info utilisateur -->
-    <div class="fixed bottom-0 left-0 right-0 bg-black bg-opacity-80 p-4 text-center border-t-4 border-green-500">
-        <p class="text-lg font-bold">
+    <div class="fixed bottom-0 left-0 right-0 bg-black bg-opacity-90 backdrop-blur-sm p-3 text-center border-t-4 border-green-500 z-30">
+        <p class="text-sm md:text-lg font-bold">
             Connecté : <span class="text-green-400">{{ auth()->user()->name }}</span> 
             | Rôle : <span class="text-yellow-400">{{ strtoupper(auth()->user()->role) }}</span>
+            <span class="hidden md:inline text-gray-400">
+                | {{ now()->format('d/m/Y H:i') }}
+            </span>
         </p>
     </div>
-
+    
     <livewire:scripts />
 </body>
 </html>
