@@ -32,12 +32,38 @@
             }
         }
         
+        @keyframes sidebar-slide-in {
+            from {
+                transform: translateX(-100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes sidebar-slide-out {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-100%);
+            }
+        }
+        
         .animate-slide-in {
             animation: slide-in 0.3s ease-out;
         }
         
         .animate-slide-out {
             animation: slide-out 0.3s ease-out;
+        }
+
+        .animate-sidebar-in {
+            animation: sidebar-slide-in 0.3s ease-out;
+        }
+
+        .animate-sidebar-out {
+            animation: sidebar-slide-out 0.3s ease-out;
         }
 
         /* Animation pour le nom de l'entreprise */
@@ -52,15 +78,6 @@
             }
         }
 
-        @keyframes shimmer {
-            0% {
-                background-position: -200% center;
-            }
-            100% {
-                background-position: 200% center;
-            }
-        }
-
         @keyframes float {
             0%, 100% {
                 transform: translateY(0px);
@@ -72,7 +89,7 @@
 
         .brand-name {
             font-family: 'Great Vibes', cursive;
-            font-size: 3.5rem;
+            font-size: 4rem;
             font-weight: 400;
             letter-spacing: 2px;
             display: flex;
@@ -128,52 +145,83 @@
             filter: drop-shadow(0 4px 6px rgba(6, 182, 212, 0.3));
         }
 
-        .letter {
-            display: inline-block;
-            opacity: 0;
-        }
-
         .letter.show {
             animation: fadeInUp 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .brand-name {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .brand-name {
+                font-size: 1.5rem;
+                min-height: 40px;
+            }
+            
+            .typing-cursor {
+                height: 1rem;
+            }
         }
     </style>
 </head>
 <body class="h-full bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 text-gray-800 font-sans antialiased">
     <div class="flex h-screen overflow-hidden">
+        <!-- OVERLAY pour mobile -->
+        <div id="sidebarOverlay" 
+             class="fixed inset-0 bg-black/50 z-30 lg:hidden hidden transition-opacity duration-300"
+             onclick="toggleSidebar()">
+        </div>
+
         <!-- SIDEBAR -->
-        @include('partials.admin.sidebar')
+        <div id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-80 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+            @include('partials.admin.sidebar')
+        </div>
         
         <!-- CONTENU PRINCIPAL -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden w-full">
             <!-- Header avec breadcrumb -->
-            <header class="bg-white/80 backdrop-blur-md border-b border-cyan-100 px-8 py-5 shadow-sm">
+            <header class="bg-white/80 backdrop-blur-md border-b border-cyan-100 px-4 sm:px-6 lg:px-8 py-4 lg:py-5 shadow-sm">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-2xl font-bold text-gray-800">{{ $header ?? 'Dashboard' }}</h2>
-                        <p class="text-sm text-gray-500 mt-1 flex items-center gap-2">
-                            <i class="fas fa-home text-cyan-500"></i>
-                            <span>{{ $breadcrumb ?? 'Accueil' }}</span>
-                        </p>
+                    <div class="flex items-center gap-3">
+                        <!-- Bouton menu mobile -->
+                        <button onclick="toggleSidebar()" 
+                                class="lg:hidden p-2 rounded-lg hover:bg-cyan-50 text-gray-700 transition-colors">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">{{ $header ?? 'Dashboard' }}</h2>
+                            <p class="text-xs sm:text-sm text-gray-500 mt-1 flex items-center gap-2">
+                                <i class="fas fa-home text-cyan-500"></i>
+                                <span>{{ $breadcrumb ?? 'Accueil' }}</span>
+                            </p>
+                        </div>
                     </div>
                     
-                    <div class="flex items-center gap-8">
-                        <!-- NOM DE L'ENTREPRISE ANIMÉ -->
-                        <div class="brand-container flex items-center gap-3 px-6 py-3 bg-transparent rounded-2xl border-0 transition-all duration-700" id="brandContainer">
+                    <div class="flex items-center gap-3 sm:gap-6 lg:gap-8">
+                        <!-- NOM DE L'ENTREPRISE ANIMÉ (caché sur mobile) -->
+                        <div class="hidden xl:flex brand-container items-center gap-3 px-6 py-3 bg-transparent rounded-2xl border-0 transition-all duration-700" id="brandContainer">
                             <i class="fas fa-ice-cream ice-cream-icon text-3xl text-cyan-500"></i>
                             <div class="brand-name" id="brandName"></div>
                             <span class="typing-cursor" id="cursor"></span>
                         </div>
 
                         <!-- ICÔNE CLOCHE NOTIFICATIONS -->
-                        <livewire:admin.notification-admin />
+                        <div class="flex">
+                            <livewire:admin.notification-admin />
+                        </div>
 
                         <!-- Infos utilisateur -->
-                        <div class="flex items-center gap-4">
-                            <div class="text-right">
+                        <div class="flex items-center gap-2 sm:gap-4">
+                            <div class="text-right hidden sm:block">
                                 <p class="text-xs text-gray-500">Connecté en tant que</p>
-                                <p class="font-semibold text-cyan-700">{{ Auth::user()->name }}</p>
+                                <p class="font-semibold text-cyan-700 text-sm">{{ Auth::user()->name }}</p>
                             </div>
-                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 via-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg shadow-lg ring-4 ring-cyan-100">
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-cyan-400 via-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg ring-2 sm:ring-4 ring-cyan-100">
                                 {{ Auth::user()->initials() }}
                             </div>
                         </div>
@@ -182,15 +230,15 @@
             </header>
 
             <!-- Contenu avec scroll -->
-            <main class="flex-1 overflow-y-auto p-8">
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                 <div class="max-w-7xl mx-auto">
                     {{ $slot }}
                 </div>
             </main>
 
             <!-- Footer -->
-            <footer class="bg-white/80 backdrop-blur-md border-t border-cyan-100 px-8 py-4">
-                <div class="flex items-center justify-between text-sm text-gray-600">
+            <footer class="bg-white/80 backdrop-blur-md border-t border-cyan-100 px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs sm:text-sm text-gray-600">
                     <p class="flex items-center gap-2">
                         <i class="fas fa-ice-cream text-cyan-500"></i>
                         &copy; {{ date('Y') }} Milla Ice Cream. Tous droits réservés.
@@ -204,6 +252,27 @@
     <livewire:scripts />
 
     <script>
+        // Fonction pour toggle la sidebar mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        // Fermer la sidebar en cliquant sur un lien (mobile)
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarLinks = document.querySelectorAll('#sidebar a');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 1024) {
+                        toggleSidebar();
+                    }
+                });
+            });
+        });
+
         // Animation d'écriture du nom de l'entreprise
         const brandText = "Milla Ice Cream";
         const brandElement = document.getElementById('brandName');
@@ -216,7 +285,6 @@
             if (isTyping) return;
             isTyping = true;
             
-            // Effacer le texte précédent et retirer l'encadrement
             brandElement.innerHTML = '';
             letterIndex = 0;
             cursor.style.display = 'inline-block';
@@ -228,7 +296,6 @@
                     const letter = document.createElement('span');
                     letter.className = 'letter';
                     
-                    // Gérer les espaces
                     if (brandText[letterIndex] === ' ') {
                         letter.classList.add('space');
                         letter.innerHTML = '&nbsp;';
@@ -238,7 +305,6 @@
                     
                     brandElement.appendChild(letter);
                     
-                    // Forcer le reflow pour que l'animation fonctionne
                     setTimeout(() => {
                         letter.classList.add('show');
                     }, 10);
@@ -246,11 +312,9 @@
                     letterIndex++;
                     setTimeout(addLetter, 150);
                 } else {
-                    // Animation terminée - ajouter l'encadrement
                     setTimeout(() => {
                         cursor.style.display = 'none';
                         
-                        // Ajouter l'encadrement avec animation
                         brandContainer.classList.remove('bg-transparent', 'border-0');
                         brandContainer.classList.add('bg-gradient-to-r', 'from-cyan-50', 'via-blue-50', 'to-purple-50', 'border-2', 'border-cyan-200', 'shadow-lg');
                         
@@ -262,12 +326,10 @@
             addLetter();
         }
 
-        // Démarrer l'animation au chargement
         window.addEventListener('load', () => {
             setTimeout(typeWriter, 500);
         });
 
-        // Répéter l'animation toutes les 30 secondes
         setInterval(() => {
             if (!isTyping) {
                 typeWriter();
@@ -308,10 +370,10 @@
             };
 
             const toast = document.createElement('div');
-            toast.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 z-50 animate-slide-in`;
+            toast.className = `fixed top-4 right-4 ${colors[type]} text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-lg flex items-center gap-3 z-50 animate-slide-in max-w-xs sm:max-w-md`;
             toast.innerHTML = `
                 <i class="fas ${icons[type]}"></i>
-                <span>${message}</span>
+                <span class="text-sm sm:text-base">${message}</span>
             `;
 
             document.body.appendChild(toast);
