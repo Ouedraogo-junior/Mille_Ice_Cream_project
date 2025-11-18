@@ -339,6 +339,18 @@ class EcranCaisse extends Component
     }
 
     /**
+     * Obtenir l'URL du ticket pour impression
+     */
+    public function getUrlTicket(?int $venteId = null): ?string
+    {
+        $id = $venteId ?? $this->derniereVenteId;
+        if (!$id) {
+            return null;
+        }
+        return route('ticket.imprimer', ['vente' => $id]);
+    }
+
+    /**
      * Effacer les messages après quelques secondes
      */
     public function effacerMessages()

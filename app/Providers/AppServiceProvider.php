@@ -6,6 +6,13 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use App\Models\User;
+use App\Models\Vente;
+use Illuminate\Support\Facades\Log;
+use Mike42\Escpos\Printer;
+use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+use Mike42\Escpos\PrintConnectors\FilePrintConnector;
+use App\Services\TicketPrinter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+       $this->app->singleton(TicketPrinter::class, function ($app) {
+            return new TicketPrinter();
+        });
     }
 
     /**
@@ -55,6 +64,17 @@ class AppServiceProvider extends ServiceProvider
         // Gate pour annuler une vente (admin uniquement)
         Gate::define('annuler-vente', function (User $user) {
             return $user->role === 'admin' && $user->is_active;
+        });
+
+        // Gate pour voir un ticket de vente (admin et caissier)
+        Gate::define('voir-ticket', function (User $user, Vente $vente) {
+            // Un admin peut voir tous les tickets
+            if ($user->role === 'admin') {
+                return true;
+            }
+    
+            // Un caissier ne peut voir que ses propres tickets
+            return $user->id === $vente->user_id;
         });
     }
 }

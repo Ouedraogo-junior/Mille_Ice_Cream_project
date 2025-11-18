@@ -13,6 +13,10 @@ use App\Livewire\Settings\TwoFactor;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
+use App\Http\Controllers\TicketController;
+
+
+
 // ==================== ON GARDE TOUT BREEZE (dashboard, settings, etc.) ====================
 
 Route::get('/', function () {
@@ -50,6 +54,51 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('caisse');
     
     // HISTORIQUE VENTES CAISSIER (optionnel - à créer plus tard)
+    Route::get('/mes-ventes', \App\Livewire\Pos\MesVentes::class)
+        ->middleware('can:acces-caisse')
+        ->name('mes-ventes');
+});
+
+// ==================== ROUTES TICKETS ====================
+Route::middleware(['auth'])->prefix('tickets')->group(function () {
+    // Afficher le ticket en HTML (impression navigateur)
+    Route::get('/{vente}/imprimer', [TicketController::class, 'afficher'])
+        ->name('ticket.imprimer');
+    
+    // Télécharger en PDF
+    Route::get('/{vente}/pdf', [TicketController::class, 'telechargerPDF'])
+        ->name('ticket.pdf');
+    
+    // Obtenir les données JSON
+    Route::get('/{vente}/json', [TicketController::class, 'donneesJSON'])
+        ->name('ticket.json');
+    
+    // Obtenir les commandes ESC/POS
+    Route::get('/{vente}/escpos', [TicketController::class, 'escpos'])
+        ->name('ticket.escpos');
+    
+    // Vérifier l'imprimante
+    Route::post('/verifier-imprimante', [TicketController::class, 'verifierImprimante'])
+        ->name('ticket.verifier');
+    
+    // Imprimer depuis le serveur
+    Route::post('/{vente}/imprimer-serveur', [TicketController::class, 'imprimerServeur'])
+        ->name('ticket.serveur');
+});
+
+// ==================== DASHBOARD CAISSIER ====================
+Route::middleware(['auth', 'verified'])->group(function () {
+    
+    // Dashboard caissier (page d'accueil après connexion)
+    Route::get('/dashboard', \App\Livewire\Pos\DashboardCaissier::class)
+        ->name('dashboard');
+    
+    // ÉCRAN DE CAISSE (accessible admin + caissier)
+    Route::get('/caisse', \App\Livewire\Pos\EcranCaisse::class)
+        ->middleware('can:acces-caisse')
+        ->name('caisse');
+    
+    // HISTORIQUE VENTES CAISSIER
     Route::get('/mes-ventes', \App\Livewire\Pos\MesVentes::class)
         ->middleware('can:acces-caisse')
         ->name('mes-ventes');

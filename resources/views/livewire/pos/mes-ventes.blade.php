@@ -800,12 +800,21 @@
     }
 </style>
 
+@push('scripts')
+<script src="{{ asset('js/ticket-printer.js') }}"></script>
+@endpush
+
 @script
 <script>
     // Écouter l'événement d'impression
     $wire.on('imprimer-ticket', (event) => {
         console.log('Imprimer ticket, ID:', event.venteId);
-        // TODO: Implémenter l'impression
+        try {
+            await window.ticketPrinter.print(event.venteId);
+        } catch (error) {
+            console.error('Erreur impression:', error);
+            alert('Erreur lors de l\'impression');
+        }
     });
 </script>
 @endscript
