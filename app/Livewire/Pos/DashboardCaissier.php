@@ -123,31 +123,41 @@ public function afficherDetails($venteId)
      */
     #[Computed]
     public function ventesParHeure()
-    {
-        $ventes = Vente::where('user_id', auth()->id())
-            ->where('est_annulee', false)
-            ->whereDate('date_vente', today())
-            ->select(
-                DB::raw('HOUR(date_vente) as heure'),
-                DB::raw('COUNT(*) as nombre'),
-                DB::raw('SUM(total) as montant')
-            )
-            ->groupBy('heure')
-            ->orderBy('heure')
-            ->get();
+{
+    $driver = DB::getDriverName();
 
-        // Remplir les heures manquantes avec 0
-        $heures = collect(range(0, 23))->map(function($h) use ($ventes) {
-            $vente = $ventes->firstWhere('heure', $h);
-            return [
-                'heure' => str_pad($h, 2, '0', STR_PAD_LEFT) . 'h',
-                'nombre' => $vente ? $vente->nombre : 0,
-                'montant' => $vente ? $vente->montant : 0,
-            ];
-        });
+    // Expression heure selon le SGBD
+    $hourExpression = $driver === 'sqlite'
+        ? "strftime('%H', date_vente)"   // SQLite
+        : "HOUR(date_vente)";            // MySQL/PostgreSQL
 
-        return $heures;
-    }
+    $ventes = Vente::where('user_id', auth()->id())
+        ->where('est_annulee', false)
+        ->whereDate('date_vente', today())
+        ->select(
+            DB::raw("$hourExpression as heure"),
+            DB::raw('COUNT(*) as nombre'),
+            DB::raw('SUM(total) as montant')
+        )
+        ->groupBy('heure')
+        ->orderBy('heure')
+        ->get();
+
+    // Remplir les heures manquantes
+    $heures = collect(range(0, 23))->map(function($h) use ($ventes) {
+        $key = str_pad($h, 2, '0', STR_PAD_LEFT); // '00', '01', '02', ...
+        $vente = $ventes->firstWhere('heure', $key);
+
+        return [
+            'heure' => $key . 'h',
+            'nombre' => $vente ? $vente->nombre : 0,
+            'montant' => $vente ? $vente->montant : 0,
+        ];
+    });
+
+    return $heures;
+}
+
 
     /**
      * Objectif du jour (peut être configuré)

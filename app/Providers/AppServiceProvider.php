@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use App\Models\User;
 use App\Models\Vente;
+use App\Observers\VenteObserver;
 use Illuminate\Support\Facades\Log;
 use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
@@ -66,6 +67,8 @@ class AppServiceProvider extends ServiceProvider
             return $user->role === 'admin' && $user->is_active;
         });
 
+         // Enregistrer l'observer pour surveiller les ventes
+        Vente::observe(VenteObserver::class);
         // Gate pour voir un ticket de vente (admin et caissier)
         Gate::define('voir-ticket', function (User $user, Vente $vente) {
             // Un admin peut voir tous les tickets
