@@ -8,6 +8,8 @@ use Livewire\Attributes\Computed;
 use Livewire\WithPagination;
 use Carbon\Carbon;
 
+use Illuminate\Support\Facades\Gate;
+
 class MesVentes extends Component
 {
     use WithPagination;
@@ -21,6 +23,9 @@ class MesVentes extends Component
     // UI States
     public ?int $venteSelectionnee = null;
     public bool $showDetails = false;
+    // Permettre à l'admin de voir l'historique d'un caissier via query string
+    public ?int $userId = null;
+    protected $queryString = ['userId'];
     
     // Messages
     public ?string $messageSucces = null;
@@ -42,8 +47,13 @@ class MesVentes extends Component
     #[Computed]
     public function ventes()
     {
+        $visibleUserId = auth()->id();
+        if ($this->userId && auth()->user() && auth()->user()->isAdmin()) {
+            $visibleUserId = $this->userId;
+        }
+
         $query = Vente::query()
-            ->where('user_id', auth()->id())
+            ->where('user_id', $visibleUserId)
             ->where('est_annulee', false)
             ->with(['details.produit', 'details.variant', 'caissier']);
 
@@ -79,8 +89,20 @@ class MesVentes extends Component
             return null;
         }
 
-        return Vente::with(['details.produit', 'details.variant', 'caissier'])
+        $vente = Vente::with(['details.produit', 'details.variant', 'caissier'])
             ->find($this->venteSelectionnee);
+
+        // Si l'admin consulte l'historique pour un autre caissier, autoriser.
+        if ($vente && $this->userId && auth()->user() && auth()->user()->isAdmin()) {
+            return $vente;
+        }
+
+        // Par défaut, n'autoriser que le propriétaire
+        if ($vente && $vente->user_id === auth()->id()) {
+            return $vente;
+        }
+
+        return null;
     }
 
     /**
@@ -89,8 +111,13 @@ class MesVentes extends Component
     #[Computed]
     public function statistiquesPeriode()
     {
+        $visibleUserId = auth()->id();
+        if ($this->userId && auth()->user() && auth()->user()->isAdmin()) {
+            $visibleUserId = $this->userId;
+        }
+
         $query = Vente::query()
-            ->where('user_id', auth()->id())
+            ->where('user_id', $visibleUserId)
             ->where('est_annulee', false);
 
         if ($this->dateDebut) {
@@ -134,9 +161,14 @@ class MesVentes extends Component
     public function reimprimerTicket(int $venteId)
     {
         $vente = Vente::find($venteId);
-        
-        if (!$vente || $vente->user_id !== auth()->id()) {
+        if (!$vente) {
             $this->messageErreur = 'Vente introuvable';
+            return;
+        }
+
+        // Autoriser la réimpression si propriétaire ou si admin
+        if ($vente->user_id !== auth()->id() && !(auth()->user() && auth()->user()->isAdmin())) {
+            $this->messageErreur = 'Accès non autorisé';
             return;
         }
 

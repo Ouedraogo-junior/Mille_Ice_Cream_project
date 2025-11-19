@@ -24,7 +24,7 @@ class Dashboard extends Component
     public function mount()
     {
         // Statistiques de base
-        $this->totalProduits = Produit::where('active', true)->count();
+        $this->totalProduits = Variant::where('active', true)->count();
         $this->caissiersActifs = User::where('role', 'caissier')->count();
         $this->produitsEnRupture = Variant::where('stock', '<=', 5)->count();
         $this->totalVariants = Variant::count();

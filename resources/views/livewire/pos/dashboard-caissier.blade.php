@@ -358,6 +358,11 @@
         </div>
 
         {{-- Actions rapides --}}
+         @php
+        $isAdminViewingCaissier = auth()->user() && method_exists(auth()->user(), 'isAdmin') && auth()->user()->isAdmin()
+            && request()->query('userId');
+        @endphp
+        @if(!$isAdminViewingCaissier)
         <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
             <a href="{{ route('caisse') }}" 
                class="group bg-gradient-to-br from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 rounded-2xl p-6 transition-all shadow-xl hover:shadow-2xl transform hover:scale-105">
@@ -414,6 +419,7 @@
                 </div>
             </a>
         </div>
+        @endif
     </div>
 
 
