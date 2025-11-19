@@ -205,7 +205,7 @@
                                 <span>{{ $breadcrumb ?? 'Accueil' }}</span>
                             </p>
                             
-                                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">{{ $header ?? 'Dashboard' }}</h2>
+                                {{-- <h2 class="text-xl sm:text-2xl font-bold text-gray-800">{{ $header ?? 'Dashboard' }}</h2> --}}
                             
                         </div>
                         @else

@@ -197,14 +197,15 @@
                                 <span class="text-lg font-bold text-emerald-600">{{ number_format($item->total_ca) }} F</span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <div class="flex-1 bg-gray-200 rounded-full h-2">
-                                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" 
-                                         style="width: {{ ($item->total_ca / $chiffreAffaires * 100) }}%"></div>
+                            <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" 
+                                    style="width: {{ $chiffreAffaires > 0 ? ($item->total_ca / $chiffreAffaires * 100) : 0 }}%">
                                 </div>
-                                <span class="text-sm font-semibold text-gray-600">
-                                    {{ number_format($item->total_ca / $chiffreAffaires * 100, 1) }}%
-                                </span>
                             </div>
+                            <span class="text-sm font-semibold text-gray-600">
+                                {{ number_format($chiffreAffaires > 0 ? ($item->total_ca / $chiffreAffaires * 100) : 0, 1) }}%
+                            </span>
+                        </div>
                         </div>
                     @endforeach
                 </div>
