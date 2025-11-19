@@ -8,6 +8,12 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 use App\Models\User;
 use App\Models\Vente;
 use App\Observers\VenteObserver;
+use Illuminate\Support\Facades\Log;
+use Mike42\Escpos\Printer;
+use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+use Mike42\Escpos\PrintConnectors\FilePrintConnector;
+use App\Services\TicketPrinter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,7 +23,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+       $this->app->singleton(TicketPrinter::class, function ($app) {
+            return new TicketPrinter();
+        });
     }
 
     /**
@@ -61,5 +69,15 @@ class AppServiceProvider extends ServiceProvider
 
          // Enregistrer l'observer pour surveiller les ventes
         Vente::observe(VenteObserver::class);
+        // Gate pour voir un ticket de vente (admin et caissier)
+        Gate::define('voir-ticket', function (User $user, Vente $vente) {
+            // Un admin peut voir tous les tickets
+            if ($user->role === 'admin') {
+                return true;
+            }
+    
+            // Un caissier ne peut voir que ses propres tickets
+            return $user->id === $vente->user_id;
+        });
     }
 }

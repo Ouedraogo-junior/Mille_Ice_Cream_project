@@ -712,7 +712,9 @@
         </div>
     </div>
 </div>
-
+@push('scripts')
+<script src="{{ asset('js/ticket-printer.js') }}"></script>
+@endpush
 @script
 <script>
     // Écouter l'événement de vente validée pour impression
@@ -726,14 +728,28 @@
         //     origin: { y: 0.6 }
         // });
         
-        // TODO: Implémenter l'impression du ticket
-        // window.print() ou appel à une imprimante Bluetooth
+        try {
+            // Imprimer automatiquement
+            await window.ticketPrinter.print(event.venteId, 'browser');
+            
+            // Ou demander à l'utilisateur
+            // const method = confirm('Utiliser une imprimante Bluetooth ?') ? 'bluetooth' : 'browser';
+            // await window.ticketPrinter.print(event.venteId, method);
+        } catch (error) {
+            console.error('Erreur impression:', error);
+            alert('Erreur lors de l\'impression du ticket');
+        }
     });
 
     // Écouter l'événement de réimpression
     $wire.on('reimprimer-ticket', (event) => {
         console.log('Réimprimer ticket, ID:', event.venteId);
-        // TODO: Implémenter la réimpression
+        try {
+            await window.ticketPrinter.print(event.venteId);
+        } catch (error) {
+            console.error('Erreur réimpression:', error);
+            alert('Erreur lors de la réimpression');
+        }
     });
 
     // Son et animation de confirmation lors de l'ajout au panier

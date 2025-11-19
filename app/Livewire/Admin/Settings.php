@@ -45,14 +45,35 @@ class Settings extends Component
             $this->notifStockFaible = (bool) Setting::get('notif_stock_faible', true);
             $this->notifVentes = (bool) Setting::get('notif_ventes', false);
             $this->notifRapport = (bool) Setting::get('notif_rapport', true);
+
+            // Si caissier, forcer la section profil
+            if (!auth()->user()->isAdmin()) {
+                $this->section = 'profil';
+            }
         } catch (\Exception $e) {
             // Si la table n'existe pas encore, ignorer l'erreur
             \Log::warning('Erreur lors du chargement des paramètres: ' . $e->getMessage());
         }
     }
 
+
+    public function updatedSection($value)
+    {
+        // Empêcher les caissiers d'accéder aux autres sections
+        if (!auth()->user()->isAdmin() && $value !== 'profil') {
+            $this->section = 'profil';
+            session()->flash('error', 'Vous n\'avez pas accès à cette section.');
+        }
+    }
+
     public function sauvegarderEntreprise()
     {
+        // Vérifier que c'est un admin
+        if (!auth()->user()->isAdmin()) {
+            session()->flash('error', 'Action non autorisée.');
+            return;
+        }
+        
         // Validation
         $this->validate([
             'nomEntreprise' => 'required|string|max:255',

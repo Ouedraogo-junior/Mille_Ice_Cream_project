@@ -14,8 +14,13 @@
         <div class="container mx-auto px-4">
             <div class="flex items-center justify-between py-3">
                 <div class="flex items-center gap-6">
-                    <h2 class="text-xl font-bold text-cyan-300">🍦 GLACIER POS</h2>
+                    <img src="{{ asset('images/logo.jpg') }}" alt="Logo Mila Ice Cream" class="h-10 w-10"/>
+                    <h2 class="text-xl font-bold text-cyan-300"> MILA ICE CREAM</h2>
                     <nav class="hidden md:flex gap-2">
+                        <a href="{{ route('dashboard') }}" 
+                           class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                            Statistiques
+                        </a>
                         <a href="{{ route('caisse') }}" 
                            class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('caisse') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
                             💰 Caisse
