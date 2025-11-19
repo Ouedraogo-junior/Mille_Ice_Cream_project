@@ -101,14 +101,15 @@
                 <livewire:settings.password />
             </div>
 
-            <!-- Bouton retour -->
+            <!-- Bouton retour (visible uniquement aux admins) -->
+            @can('admin')
             <div class="flex justify-start">
                 <a href="{{ route('admin.settings') }}"
                    class="px-8 py-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition inline-flex items-center gap-2">
                     <i class="fas fa-arrow-left"></i> Retour aux paramètres
                 </a>
             </div>
-
+            @endcan
             <!-- SECTION 3 : ZONE DANGEREUSE -->
            {{--  <div class="bg-white rounded-2xl shadow-sm border border-red-200 p-8">
                 <h3 class="text-2xl font-bold text-red-600 mb-6 flex items-center gap-3">

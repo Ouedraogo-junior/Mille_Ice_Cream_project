@@ -176,10 +176,12 @@
              onclick="toggleSidebar()">
         </div>
 
-        <!-- SIDEBAR -->
+        <!-- SIDEBAR (visible uniquement aux admins) -->
+        @can('admin')
         <div id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-80 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
             @include('partials.admin.sidebar')
         </div>
+        @endcan
         
         <!-- CONTENU PRINCIPAL -->
         <div class="flex-1 flex flex-col overflow-hidden w-full">
@@ -187,19 +189,50 @@
             <header class="bg-white/80 backdrop-blur-md border-b border-cyan-100 px-4 sm:px-6 lg:px-8 py-4 lg:py-5 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <!-- Bouton menu mobile -->
+                        <!-- Bouton menu mobile (visible uniquement aux admins) -->
+                        @can('admin')
                         <button onclick="toggleSidebar()" 
                                 class="lg:hidden p-2 rounded-lg hover:bg-cyan-50 text-gray-700 transition-colors">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
-                        
+                        @endcan
+                        @can('admin')
                         <div>
+                            
                             <h2 class="text-xl sm:text-2xl font-bold text-gray-800">{{ $header ?? 'Dashboard' }}</h2>
                             <p class="text-xs sm:text-sm text-gray-500 mt-1 flex items-center gap-2">
                                 <i class="fas fa-home text-cyan-500"></i>
                                 <span>{{ $breadcrumb ?? 'Accueil' }}</span>
                             </p>
+                            
+                                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">{{ $header ?? 'Dashboard' }}</h2>
+                            
                         </div>
+                        @else
+
+                        <div class="flex items-center gap-6">
+                            <img src="{{ asset('images/logo.jpg') }}" alt="Logo Mila Ice Cream" class="h-10 w-10"/>
+                            <h2 class="text-xl font-bold text-cyan-300"> MILA ICE CREAM</h2>
+                            <nav class="hidden md:flex gap-2">
+                                <a href="{{ route('dashboard') }}" 
+                                class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                                    Statistiques
+                                </a>
+                                <a href="{{ route('caisse') }}" 
+                                class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('caisse') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                                    💰 Caisse
+                                </a>
+                                <a href="{{ route('mes-ventes') }}" 
+                                class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('mes-ventes') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                                    📋 Historique
+                                </a>
+                                <a href="{{ route('profile.edit') }}" 
+                                class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('profile.edit') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                                    ⚙️ Profil
+                                </a>
+                            </nav>
+                        </div>
+                        @endcan
                     </div>
                     
                     <div class="flex items-center gap-3 sm:gap-6 lg:gap-8">
@@ -252,13 +285,15 @@
     <livewire:scripts />
 
     <script>
-        // Fonction pour toggle la sidebar mobile
+        // Fonction pour toggle la sidebar mobile (robuste si sidebar absent)
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            
+
+            if (!sidebar) return; // Pas d'erreur si sidebar n'est pas rendu pour l'utilisateur
+
             sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
+            if (overlay) overlay.classList.toggle('hidden');
         }
 
         // Fermer la sidebar en cliquant sur un lien (mobile)
