@@ -103,7 +103,7 @@ class GestionProduits extends Component
             'nom' => $this->nom,
             'categorie_id' => $this->categorie_id,
             'image' => $imagePath ?? ($this->produit_id ? Produit::find($this->produit_id)->image : null),
-            'active' => true
+            // 'active' => true
         ]);
 
         foreach ($this->variants as $variant) {
