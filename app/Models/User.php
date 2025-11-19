@@ -46,10 +46,10 @@ class User extends Authenticatable
         $this->update(['notification_preferences' => $preferences]);
     }
 
-    // Relation avec les notifications
     public function notifications()
     {
-        return $this->hasMany(\App\Models\Notification::class)->latest();
+        return $this->morphMany(\Illuminate\Notifications\DatabaseNotification::class, 'notifiable')
+            ->orderBy('created_at', 'desc');
     }
 
     public function unreadNotificationsCount()

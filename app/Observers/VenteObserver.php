@@ -3,21 +3,16 @@
 namespace App\Observers;
 
 use App\Models\Vente;
-use App\Models\Notification;
 use App\Models\User;
-use App\Events\StockAlertReached;
+use App\Notifications\StockAlertNotification;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 class VenteObserver
 {
     /**
-     * Seuil d'alerte de stock (modifiable selon vos besoins)
-     */
-    const SEUIL_ALERTE = 10;
-
-    /**
      * Appelé après la création d'une vente
-     * C'est ici que le stock est décrémenté
+     * Le stock est décrémenté UNIQUEMENT ICI
      */
     public function created(Vente $vente)
     {
@@ -39,7 +34,6 @@ class VenteObserver
         // Si la vente vient d'être annulée, restaurer le stock
         if ($vente->isDirty('est_annulee') && $vente->est_annulee) {
             $this->restaurerStock($vente);
-            
             Log::info("Stock restauré pour la vente annulée #{$vente->id}");
         }
     }
@@ -60,7 +54,6 @@ class VenteObserver
             // Vérifier si le stock est suffisant
             if ($variant->stock >= $detail->quantite) {
                 $variant->decrement('stock', $detail->quantite);
-                
                 Log::info("Stock décrémenté : {$variant->produit->nom} - {$variant->nom} (-{$detail->quantite})");
             } else {
                 Log::error("Stock insuffisant pour {$variant->produit->nom} - {$variant->nom}");
@@ -94,25 +87,27 @@ class VenteObserver
                 continue;
             }
 
-            $produit = $variant->produit;
-            $stockActuel = $variant->fresh()->stock; // Recharger pour avoir le stock à jour
-
-            // 🚨 Stock faible (entre 1 et seuil d'alerte)
-            if ($stockActuel > 0 && $stockActuel <= self::SEUIL_ALERTE) {
-                $this->envoyerAlerteStock($produit, $variant, $stockActuel);
-            }
+            // Recharger pour avoir le stock à jour
+            $variant->refresh();
+            
+            $stockActuel = $variant->stock;
+            $seuilAlerte = $variant->seuil_alerte ?? 10; // Utiliser le seuil du variant
 
             // 🔴 Rupture de stock (0 ou négatif)
             if ($stockActuel <= 0) {
-                $this->envoyerAlerteRupture($produit, $variant);
+                $this->envoyerNotification($variant, $stockActuel, true);
+            }
+            // 🚨 Stock faible (entre 1 et seuil d'alerte)
+            elseif ($stockActuel <= $seuilAlerte) {
+                $this->envoyerNotification($variant, $stockActuel, false);
             }
         }
     }
 
     /**
-     * Envoie une alerte de stock faible à tous les admins
+     * Envoie une notification à tous les admins
      */
-    private function envoyerAlerteStock($produit, $variant, $stockActuel)
+    private function envoyerNotification($variant, $stockActuel, $isRupture)
     {
         // Récupérer tous les admins
         $admins = User::where('role', 'admin')->get();
@@ -123,9 +118,9 @@ class VenteObserver
         }
 
         foreach ($admins as $admin) {
-            // Éviter le spam : vérifier si une alerte similaire n'a pas été envoyée dans les 6 dernières heures
-            $alerteRecente = Notification::where('user_id', $admin->id)
-                ->where('type', 'stock_alert')
+            // Anti-spam : vérifier si une alerte similaire a été envoyée récemment
+            $alerteRecente = $admin->notifications()
+                ->where('type', StockAlertNotification::class)
                 ->where('data->variant_id', $variant->id)
                 ->where('created_at', '>=', now()->subHours(6))
                 ->exists();
@@ -134,90 +129,15 @@ class VenteObserver
                 continue;
             }
 
-            // Créer la notification en base de données
-            Notification::create([
-                'user_id' => $admin->id,
-                'type' => 'stock_alert',
-                'message' => "⚠️ Stock faible : {$produit->nom} - {$variant->nom} ({$stockActuel}/" . self::SEUIL_ALERTE . " unités)",
-                'data' => [
-                    'product_id' => $produit->id,
-                    'variant_id' => $variant->id,
-                    'product_name' => $produit->nom,
-                    'variant_name' => $variant->nom,
-                    'current_stock' => $stockActuel,
-                    'threshold' => self::SEUIL_ALERTE,
-                    'vente_id' => $vente->id ?? null
-                ],
-                'read' => false
-            ]);
-
-            // Broadcaster l'événement en temps réel via Reverb
             try {
-                broadcast(new StockAlertReached(
-                    $admin->id,
-                    $produit->nom,
-                    $variant->nom,
-                    $stockActuel,
-                    self::SEUIL_ALERTE,
-                    $produit->id,
-                    $variant->id
-                ));
+                // Envoyer la notification via le système Laravel
+                $admin->notify(new StockAlertNotification($variant, $stockActuel, $isRupture));
 
-                Log::info("✅ Alerte stock envoyée : {$produit->nom} - {$variant->nom} (stock: {$stockActuel}) → Admin #{$admin->id}");
+                $type = $isRupture ? 'rupture' : 'alerte';
+                Log::info("✅ Notification {$type} envoyée : {$variant->produit->nom} - {$variant->nom} → Admin #{$admin->id}");
+                
             } catch (\Exception $e) {
-                Log::error("❌ Erreur broadcast alerte stock: " . $e->getMessage());
-            }
-        }
-    }
-
-    /**
-     * Envoie une alerte de rupture de stock
-     */
-    private function envoyerAlerteRupture($produit, $variant)
-    {
-        $admins = User::where('role', 'admin')->get();
-
-        foreach ($admins as $admin) {
-            // Éviter le spam pour les ruptures aussi
-            $alerteRecente = Notification::where('user_id', $admin->id)
-                ->where('type', 'rupture_stock')
-                ->where('data->variant_id', $variant->id)
-                ->where('created_at', '>=', now()->subHours(6))
-                ->exists();
-
-            if ($alerteRecente) {
-                continue;
-            }
-
-            Notification::create([
-                'user_id' => $admin->id,
-                'type' => 'rupture_stock',
-                'message' => "🔴 RUPTURE DE STOCK : {$produit->nom} - {$variant->nom}",
-                'data' => [
-                    'product_id' => $produit->id,
-                    'variant_id' => $variant->id,
-                    'product_name' => $produit->nom,
-                    'variant_name' => $variant->nom,
-                    'current_stock' => 0,
-                    'threshold' => self::SEUIL_ALERTE
-                ],
-                'read' => false
-            ]);
-
-            try {
-                broadcast(new StockAlertReached(
-                    $admin->id,
-                    $produit->nom,
-                    $variant->nom,
-                    0,
-                    self::SEUIL_ALERTE,
-                    $produit->id,
-                    $variant->id
-                ));
-
-                Log::info("🔴 Alerte rupture stock envoyée : {$produit->nom} - {$variant->nom} → Admin #{$admin->id}");
-            } catch (\Exception $e) {
-                Log::error("❌ Erreur broadcast rupture stock: " . $e->getMessage());
+                Log::error("❌ Erreur envoi notification: " . $e->getMessage());
             }
         }
     }

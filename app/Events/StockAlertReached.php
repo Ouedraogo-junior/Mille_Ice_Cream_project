@@ -8,12 +8,12 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldQueue;  // ← AJOUT OBLIGATOIRE
 
-class StockAlertReached implements ShouldBroadcast
+class StockAlertReached implements ShouldBroadcast, ShouldQueue  // ← AJOUT ShouldQueue
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $userId;
     public $productName;
     public $variantName;
     public $currentStock;
@@ -21,18 +21,14 @@ class StockAlertReached implements ShouldBroadcast
     public $productId;
     public $variantId;
 
-    /**
-     * @param int $userId ID de l'admin à notifier
-     * @param string $productName Nom du produit
-     * @param string $variantName Nom du variant
-     * @param int $currentStock Stock actuel
-     * @param int $threshold Seuil d'alerte
-     * @param int $productId ID du produit
-     * @param int|null $variantId ID du variant
-     */
-    public function __construct($userId, $productName, $variantName, $currentStock, $threshold, $productId, $variantId = null)
-    {
-        $this->userId = $userId;
+    public function __construct(
+        string $productName,
+        string $variantName,
+        int $currentStock,
+        int $threshold,
+        int $productId,
+        ?int $variantId = null
+    ) {
         $this->productName = $productName;
         $this->variantName = $variantName;
         $this->currentStock = $currentStock;
@@ -41,39 +37,26 @@ class StockAlertReached implements ShouldBroadcast
         $this->variantId = $variantId;
     }
 
-    /**
-     * Canal de broadcast (utilisez PrivateChannel pour sécuriser)
-     */
-    public function broadcastOn()
+    public function broadcastOn(): Channel
     {
-        // Utiliser un canal privé pour plus de sécurité
-        return new PrivateChannel('notifications.' . $this->userId);
-        
-        // OU utilisez un canal public si vous préférez
-        // return new Channel('notifications.' . $this->userId);
+        return new PrivateChannel('admin.notifications');
     }
 
-    /**
-     * Nom de l'événement écouté côté frontend
-     */
-    public function broadcastAs()
+    public function broadcastAs(): string
     {
-        return 'NotificationSent';
+        return 'stock.alert'; // ← Nom simple et clair
     }
 
-    /**
-     * Données envoyées au frontend
-     */
-    public function broadcastWith()
+    public function broadcastWith(): array
     {
         $type = $this->currentStock <= 0 ? 'rupture_stock' : 'stock_alert';
-        $emoji = $this->currentStock <= 0 ? '🔴' : '⚠️';
-        
+        $emoji = $this->currentStock <= 0 ? 'Rupture' : 'Attention';
+
         return [
             'type' => $type,
-            'message' => "{$emoji} " . ($this->currentStock <= 0 
-                ? "RUPTURE DE STOCK : {$this->productName} - {$this->variantName}"
-                : "Stock faible : {$this->productName} - {$this->variantName} ({$this->currentStock}/{$this->threshold})"),
+            'message' => $this->currentStock <= 0
+                ? "{$emoji} RUPTURE DE STOCK : {$this->productName} - {$this->variantName}"
+                : "{$emoji} Stock faible : {$this->productName} - {$this->variantName} ({$this->currentStock}/{$this->threshold})",
             'product_name' => $this->productName,
             'variant_name' => $this->variantName,
             'current_stock' => $this->currentStock,

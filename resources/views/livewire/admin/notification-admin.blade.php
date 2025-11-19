@@ -41,30 +41,30 @@
         <!-- Contenu -->
         <div class="max-h-96 overflow-y-auto">
             @forelse($notifications as $notif)
-                <div wire:key="{{ $notif->id }}"
-                     class="p-4 border-b border-gray-100 hover:bg-gray-50 transition {{ !$notif->read ? 'bg-blue-50' : '' }}">
-                    <div class="flex justify-between items-start gap-3">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-800 truncate">{{ $notif->message }}</p>
-                            <p class="text-xs text-gray-500 mt-1">
-                                <i class="fas fa-clock mr-1"></i> {{ $notif->created_at->diffForHumans() }}
-                            </p>
-                        </div>
-                        @if(!$notif->read)
-                            <button wire:click="markAsRead({{ $notif->id }})"
-                                    class="flex-shrink-0 text-cyan-600 hover:text-cyan-700">
-                                <i class="fas fa-check-circle"></i>
-                            </button>
-                        @endif
-                    </div>
-                </div>
-            @empty
-                <div class="p-12 text-center text-gray-400">
-                    <i class="fas fa-bell-slash text-5xl mb-4"></i>
-                    <p class="text-lg">Aucune notification</p>
-                    <p class="text-sm mt-2">Vous êtes à jour !</p>
-                </div>
-            @endforelse
+<div wire:key="{{ $notif['id'] }}"
+class="p-4 border-b border-gray-100 hover:bg-gray-50 transition {{ !$notif['read'] ? 'bg-blue-50' : '' }}">
+<div class="flex justify-between items-start gap-3">
+<div class="flex-1 min-w-0">
+    <p class="text-sm font-medium text-gray-800 truncate">{{ $notif['message'] }}</p>
+    <p class="text-xs text-gray-500 mt-1">
+        <i class="fas fa-clock mr-1"></i> {{ \Carbon\Carbon::parse($notif['created_at'])->diffForHumans() }}
+    </p>
+</div>
+@if(!$notif['read'])
+    <button wire:click="markAsRead({{ $notif['id'] }})"
+            class="flex-shrink-0 text-cyan-600 hover:text-cyan-700">
+        <i class="fas fa-check-circle"></i>
+    </button>
+@endif
+</div>
+</div>
+@empty
+    <div class="p-12 text-center text-gray-400">
+        <i class="fas fa-bell-slash text-5xl mb-4"></i>
+        <p class="text-lg">Aucune notification</p>
+        <p class="text-sm mt-2">Vous êtes à jour !</p>
+    </div>
+@endforelse
         </div>
     </div>
 </div>

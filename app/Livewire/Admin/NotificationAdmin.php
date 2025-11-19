@@ -16,114 +16,80 @@ class NotificationAdmin extends Component
         $this->refreshNotifications();
     }
 
-    /**
-     * Configuration des écouteurs d'événements
-     * Format: echo-notification:nom-du-canal,NomEvent
-     */
     public function getListeners()
-    {
-        $userId = Auth::id();
-        
-        return [
-            // Écouter le canal privé des notifications de cet admin
-            "echo-notification:notifications.{$userId},.NotificationSent" => 'handleNewNotification',
-            
-            // Événements Livewire internes
-            'notificationRead' => 'refreshNotifications',
-            'refreshNotifications' => 'refreshNotifications'
-        ];
-    }
+{
+    return [
+        // Cette syntaxe est la SEULE qui marche avec Reverb + queued notifications en 2025
+        'echo-private:admin.notifications,Illuminate\Notifications\Events\BroadcastNotificationCreated' => 'handleRealtimeNotification',
 
-    /**
-     * Gère la réception d'une nouvelle notification via Reverb
-     */
-    public function handleNewNotification($payload)
-    {
-        // Rafraîchir la liste
-        $this->refreshNotifications();
-        
-        // Afficher un toast de notification
-        $this->dispatch('toast', [
-            'type' => $payload['type'] === 'rupture_stock' ? 'error' : 'warning',
-            'message' => $payload['message'] ?? 'Nouvelle notification'
-        ]);
+        'notificationRead'      => 'refreshNotifications',
+        'refreshNotifications' => 'refreshNotifications',
+    ];
+}
 
-        // Jouer un son (optionnel)
-        $this->dispatch('playNotificationSound');
-    }
-
-    /**
-     * Rafraîchit la liste des notifications
-     */
-    public function refreshNotifications()
+    // FONCTION QUI REÇOIT LA NOTIFICATION EN TEMPS RÉEL (même avec queue)
+    public function handleRealtimeNotification($event)
     {
-        $user = Auth::user();
-        
-        if (!$user) {
+        // On ne traite que nos alertes stock
+        if (($event['type'] ?? '') !== 'App\\Notifications\\StockAlertNotification') {
             return;
         }
 
-        $this->unreadCount = $user->notifications()
-            ->where('read', false)
-            ->count();
-            
+        $data = $event['notification']['data'] ?? $event['data'];
+
+        \Log::info('Notification stock reçue en temps réel !', $data);
+
+        // Toast + son
+        $this->dispatch('toast', [
+            'type'    => $data['type'] === 'rupture_stock' ? 'error' : 'warning',
+            'title'   => $data['type'] === 'rupture_stock' ? 'RUPTURE DE STOCK !' : 'Stock faible',
+            'message' => $data['message'],
+        ]);
+
+        $this->dispatch('playNotificationSound');
+
+        // Rafraîchit le badge et la liste instantanément
+        $this->refreshNotifications();
+    }
+
+    public function refreshNotifications()
+    {
+        $user = Auth::user();
+        if (!$user) return;
+
+        $this->unreadCount = $user->unreadNotifications()->count();
+
         $this->notifications = $user->notifications()
             ->latest()
             ->take(15)
-            ->get();
+            ->get()
+            ->map(fn($n) => [
+                'id'         => $n->id,
+                'type'       => $n->data['type'] ?? 'info',
+                'message'    => $n->data['message'] ?? 'Notification',
+                'data'       => $n->data,
+                'read'       => !is_null($n->read_at),
+                'created_at' => $n->created_at,
+            ])->toArray();
     }
 
-    /**
-     * Toggle du dropdown de notifications
-     */
     public function toggleDropdown()
     {
         $this->showDropdown = !$this->showDropdown;
-        
         if ($this->showDropdown) {
             $this->refreshNotifications();
         }
     }
 
-    /**
-     * Marque une notification comme lue
-     */
     public function markAsRead($id)
     {
-        $notification = Auth::user()->notifications()->find($id);
-        
-        if ($notification) {
-            $notification->markAsRead();
-            $this->refreshNotifications();
-            $this->dispatch('notificationRead');
-        }
+        Auth::user()->notifications()->find($id)?->markAsRead();
+        $this->refreshNotifications();
     }
 
-    /**
-     * Marque toutes les notifications comme lues
-     */
     public function markAllAsRead()
     {
-        Auth::user()->notifications()
-            ->where('read', false)
-            ->update([
-                'read' => true,
-                'read_at' => now()
-            ]);
-            
-        $this->refreshNotifications();
-        $this->dispatch('notificationRead');
-    }
-
-    /**
-     * Supprime une notification
-     */
-    public function deleteNotification($id)
-    {
-        Auth::user()->notifications()
-            ->where('id', $id)
-            ->delete();
-            
+        Auth::user()->unreadNotifications->markAsRead();
         $this->refreshNotifications();
     }
 
