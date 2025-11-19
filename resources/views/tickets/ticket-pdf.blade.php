@@ -276,11 +276,13 @@
                 @else
                 <span class="paiement-label">Payé en espèce</span>
                 @endif
-                <span class="paiement-montant">{{ number_format($vente->montant_recu ?? $vente->total, 2, ',', ' ') }} F</span>
+                <span class="paiement-montant">{{ number_format($vente->montant ?? $vente->total, 2, ',', ' ') }} F</span>
             </div>
             <div class="paiement-ligne">
                 <span class="paiement-label">Rendu en espèces</span>
-                <span class="paiement-montant">{{ number_format(($vente->montant_recu ?? $vente->total) - $vente->total, 2, ',', ' ') }} F</span>
+                <span class="paiement-montant">
+                    {{ number_format($vente->monnaie_rendue ?? (($vente->montant ?? $vente->total) - $vente->total), 2, ',', ' ') }} F
+                </span>
             </div>
         </div>
     </div>

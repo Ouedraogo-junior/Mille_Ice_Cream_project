@@ -246,11 +246,19 @@ class EcranCaisse extends Component
             DB::beginTransaction();
 
             // Créer la vente
+            $montant = $this->modePaiement === 'espece'
+                ? floatval($this->sommeEncaissee)
+                : $this->totalPanier;
+            $monnaieRendue = $this->modePaiement === 'espece'
+                ? max(0, floatval($this->sommeEncaissee) - $this->totalPanier)
+                : 0;
             $vente = Vente::create([
                 'user_id' => auth()->id(),
                 'total' => $this->totalPanier,
                 'mode_paiement' => $this->modePaiement,
                 'date_vente' => now(),
+                'montant' => $montant,
+                'monnaie_rendue' => $monnaieRendue,
             ]);
 
             // Créer les détails et mettre à jour les stocks
