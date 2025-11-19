@@ -12,6 +12,7 @@ use App\Livewire\Settings\TwoFactor;
 
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
+use App\Events\TestBroadcast;
 
 // ==================== ON GARDE TOUT BREEZE (dashboard, settings, etc.) ====================
 
@@ -104,3 +105,14 @@ Route::post('/logout', function () {
     request()->session()->regenerateToken();
     return redirect('/');
 })->name('logout');
+
+
+
+Route::get('/test-reverb', function () {
+    broadcast(new TestBroadcast("Test depuis Laravel à " . now()->format('H:i:s')));
+    return "Événement envoyé ! Ouvre la page /reverb-test pour voir.";
+});
+
+Route::get('/reverb-test', function () {
+    return view('reverb-test');
+});

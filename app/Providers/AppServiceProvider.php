@@ -6,6 +6,8 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use App\Models\User;
+use App\Models\Vente;
+use App\Observers\VenteObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -56,5 +58,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('annuler-vente', function (User $user) {
             return $user->role === 'admin' && $user->is_active;
         });
+
+         // Enregistrer l'observer pour surveiller les ventes
+        Vente::observe(VenteObserver::class);
     }
 }

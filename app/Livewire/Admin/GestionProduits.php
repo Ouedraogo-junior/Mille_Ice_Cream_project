@@ -125,6 +125,8 @@ class GestionProduits extends Component
         $this->showForm = false;
         $this->resetForm();
         $this->dispatch('toast', ['type' => 'success', 'message' => 'Produit sauvegardé avec succès !']);
+
+        $this->dispatch('$refresh');
     }
 
     // Méthode pour ouvrir le modal de confirmation de suppression
@@ -167,6 +169,8 @@ class GestionProduits extends Component
             'type' => 'success',
             'message' => 'Produit supprimé avec succès !'
         ]);
+
+        $this->dispatch('$refresh');
     }
 
     private function resetForm()
