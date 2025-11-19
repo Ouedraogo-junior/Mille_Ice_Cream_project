@@ -23,7 +23,8 @@ class EcranCaisse extends Component
     // Mode de paiement
     public string $modePaiement = 'espece';
     // Paiement en espèces : somme encaissée par le client
-    public float $sommeEncaissee = 0;
+    // Note: remove typed property to avoid Livewire compatibility issues with some versions
+    public $sommeEncaissee = 0;
     
     // UI States
     public bool $showConfirmation = false;
