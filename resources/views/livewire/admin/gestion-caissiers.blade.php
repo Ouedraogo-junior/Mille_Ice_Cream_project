@@ -56,10 +56,13 @@
 
                     <!-- Boutons d'action -->
                     <div class="flex gap-3">
+                        <a href="{{ route('mes-ventes', ['userId' => $c->id]) }}" target="_blank"
+                           class="px-4 py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-semibold rounded-lg transition-colors flex items-center gap-2">
+                            <i class="fas fa-history"></i>
+                        </a>
                         <button wire:click="editer({{ $c->id }})" 
                                 class="flex-1 px-4 py-2.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
-                            <i class="fas fa-edit"></i>
-                            <span>Modifier</span>
+                            <i class="fas fa-edit"></i>   
                         </button>
                         <button wire:click="supprimer({{ $c->id }})" 
                                 wire:confirm="Êtes-vous sûr de vouloir supprimer ce caissier ?"

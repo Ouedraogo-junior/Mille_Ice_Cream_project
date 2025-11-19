@@ -10,6 +10,12 @@
 <body class="h-full bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950 text-white min-h-screen">
     
     <!-- Menu de navigation caissier -->
+    @php
+        // Considérer la présence de ?userId=ID comme "admin qui consulte l'historique d'un caissier".
+        // Cela permet de conserver le contexte même si l'admin clique sur Statistiques (on conserve userId en query).
+        $isAdminViewingCaissier = auth()->user() && method_exists(auth()->user(), 'isAdmin') && auth()->user()->isAdmin()
+            && request()->query('userId');
+    @endphp
     <div class="bg-blue-950 bg-opacity-80 border-b-2 border-cyan-400">
         <div class="container mx-auto px-4">
             <div class="flex items-center justify-between py-3">
@@ -17,22 +23,33 @@
                     <img src="{{ asset('images/logo.jpg') }}" alt="Logo Mila Ice Cream" class="h-10 w-10"/>
                     <h2 class="text-xl font-bold text-cyan-300"> MILA ICE CREAM</h2>
                     <nav class="hidden md:flex gap-2">
-                        <a href="{{ route('dashboard') }}" 
-                           class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
-                            Statistiques
-                        </a>
-                        <a href="{{ route('caisse') }}" 
-                           class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('caisse') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
-                            💰 Caisse
-                        </a>
-                        <a href="{{ route('mes-ventes') }}" 
-                           class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('mes-ventes') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
-                            📋 Historique
-                        </a>
-                        <a href="{{ route('profile.edit') }}" 
-                           class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('profile.edit') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
-                            ⚙️ Profil
-                        </a>
+                        @if($isAdminViewingCaissier)
+                            <a href="{{ route('dashboard', ['userId' => request()->query('userId')]) }}" 
+                               class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                                Statistiques
+                            </a>
+                            <a href="{{ route('mes-ventes', ['userId' => request()->query('userId')]) }}" 
+                               class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('mes-ventes') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                                📋 Historique
+                            </a>
+                        @else
+                            <a href="{{ route('dashboard') }}" 
+                               class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                                Statistiques
+                            </a>
+                            <a href="{{ route('caisse') }}" 
+                               class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('caisse') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                                💰 Caisse
+                            </a>
+                            <a href="{{ route('mes-ventes') }}" 
+                               class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('mes-ventes') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                                📋 Historique
+                            </a>
+                            <a href="{{ route('profile.edit') }}" 
+                               class="px-4 py-2 rounded-lg font-semibold transition {{ request()->routeIs('profile.edit') ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-white hover:bg-opacity-10' }}">
+                                ⚙️ Profil
+                            </a>
+                        @endif
                     </nav>
                 </div>
                 
@@ -50,32 +67,45 @@
                              @click.away="open = false"
                              x-transition
                              class="absolute right-4 top-16 bg-blue-900 rounded-lg shadow-xl border-2 border-cyan-400 py-2 w-48 z-50">
-                            <a href="{{ route('caisse') }}" class="block px-4 py-2 text-white hover:bg-cyan-500 transition">
-                                💰 Caisse
-                            </a>
-                            <a href="{{ route('mes-ventes') }}" class="block px-4 py-2 text-white hover:bg-cyan-500 transition">
-                                📋 Historique
-                            </a>
-                            <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-white hover:bg-cyan-500 transition">
-                                ⚙️ Profil
-                            </a>
+                            @if($isAdminViewingCaissier)
+                                    <a href="{{ route('dashboard', ['userId' => request()->query('userId')]) }}" class="block px-4 py-2 text-white hover:bg-cyan-500 transition">
+                                        Statistiques
+                                    </a>
+                                    <a href="{{ route('mes-ventes', ['userId' => request()->query('userId')]) }}" class="block px-4 py-2 text-white hover:bg-cyan-500 transition">
+                                        📋 Historique
+                                    </a>
+                            @else
+                                <a href="{{ route('caisse') }}" class="block px-4 py-2 text-white hover:bg-cyan-500 transition">
+                                    💰 Caisse
+                                </a>
+                                <a href="{{ route('mes-ventes') }}" class="block px-4 py-2 text-white hover:bg-cyan-500 transition">
+                                    📋 Historique
+                                </a>
+                                <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-white hover:bg-cyan-500 transition">
+                                    ⚙️ Profil
+                                </a>
+                            @endif
                             <hr class="border-cyan-400 my-2">
+                            @if(!$isAdminViewingCaissier)
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="w-full text-left px-4 py-2 text-red-300 hover:bg-red-600 hover:text-white transition">
                                     🚪 Déconnexion
                                 </button>
                             </form>
+                            @endif
                         </div>
                     </div>
                     
                     <!-- Déconnexion desktop -->
+                    @if(!$isAdminViewingCaissier)
                     <form method="POST" action="{{ route('logout') }}" class="hidden md:block">
                         @csrf
                         <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition">
                             🚪 Déconnexion
                         </button>
                     </form>
+                    @endif
                 </div>
             </div>
         </div>

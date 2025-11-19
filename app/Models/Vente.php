@@ -16,6 +16,8 @@ class Vente extends Model
         'user_id',
         'total',
         'mode_paiement',
+        'montant',
+        'monnaie_rendue',
         'date_vente',
         'numero_ticket',
         'note',
@@ -27,6 +29,8 @@ class Vente extends Model
 
     protected $casts = [
         'total' => 'decimal:2',
+        'montant' => 'decimal:2',
+        'monnaie_rendue' => 'decimal:2',
         'date_vente' => 'datetime',
         'est_annulee' => 'boolean',
         'annulee_le' => 'datetime',
