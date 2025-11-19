@@ -27,7 +27,7 @@ class TicketController extends Controller
         }
 
         return view('tickets.ticket-thermique', [
-            'vente' => $vente->load(['details.produit', 'caissier']),
+            'vente' => $vente->load(['details.produit', 'details.variant', 'caissier']),
             'entreprise' => $this->getInfosEntreprise(),
         ]);
     }
@@ -41,6 +41,8 @@ class TicketController extends Controller
             abort(403, 'Accès non autorisé');
         }
 
+        // Charger aussi la relation variant pour le PDF
+        $vente->load(['details.produit', 'details.variant', 'caissier']);
         return $this->printer->genererPDF($vente);
     }
 
@@ -53,6 +55,8 @@ class TicketController extends Controller
             abort(403, 'Accès non autorisé');
         }
 
+        // Charger aussi la relation variant pour le JSON
+        $vente->load(['details.produit', 'details.variant', 'caissier']);
         return response()->json($this->printer->genererDonneesJSON($vente));
     }
 
@@ -66,6 +70,8 @@ class TicketController extends Controller
         }
 
         try {
+            // Charger aussi la relation variant pour ESC/POS
+            $vente->load(['details.produit', 'details.variant', 'caissier']);
             $data = $this->printer->genererESCPOS($vente);
             
             return response()->json([

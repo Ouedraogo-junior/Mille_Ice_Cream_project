@@ -208,20 +208,21 @@
                 {{-- Grille de produits moderne --}}
                 <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
                     @forelse($this->produits as $produit)
+                        @php $variant = $produit->variants->first(); @endphp
                         <button wire:click="ajouterAuPanier({{ $produit->id }})"
                                 wire:loading.attr="disabled"
                                 wire:target="ajouterAuPanier({{ $produit->id }})"
-                                class="group relative bg-white/10 backdrop-blur-md rounded-2xl p-5 hover:bg-white/20 transition-all duration-300 border border-white/20 hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/20 transform hover:-translate-y-2 {{ ($produit->stock !== null && $produit->stock <= 0) ? 'opacity-50 cursor-not-allowed' : '' }}">
+                                class="group relative bg-white/10 backdrop-blur-md rounded-2xl p-5 hover:bg-white/20 transition-all duration-300 border border-white/20 hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/20 transform hover:-translate-y-2 {{ (optional($variant)->stock !== null && optional($variant)->stock <= 0) ? 'opacity-50 cursor-not-allowed' : '' }}">
                             
                             {{-- Effet de brillance au survol --}}
                             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                             
                             {{-- Badge stock --}}
-                            @if($produit->stock !== null && $produit->stock > 0 && $produit->stock <= 5)
+                            @if(optional($variant)->stock !== null && optional($variant)->stock > 0 && optional($variant)->stock <= 5)
                                 <span class="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 animate-pulse">
-                                    {{ $produit->stock }} restants
+                                    {{ $variant->stock }} restants
                                 </span>
-                            @elseif($produit->stock !== null && $produit->stock <= 0)
+                            @elseif(optional($variant)->stock !== null && optional($variant)->stock <= 0)
                                 <span class="absolute top-3 right-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
                                     Épuisé
                                 </span>
@@ -243,7 +244,7 @@
                             <div class="relative z-10">
                                 <h3 class="font-bold text-base text-white mb-2 group-hover:text-purple-300 transition line-clamp-2">{{ $produit->nom }}</h3>
                                 <div class="flex items-center justify-between">
-                                    <p class="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">{{ number_format($produit->prix, 0, ',', ' ') }}</p>
+                                    <p class="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">{{ number_format(optional($variant)->prix ?? 0, 0, ',', ' ') }}</p>
                                     <span class="text-xs text-purple-300 font-semibold">FCFA</span>
                                 </div>
                             </div>

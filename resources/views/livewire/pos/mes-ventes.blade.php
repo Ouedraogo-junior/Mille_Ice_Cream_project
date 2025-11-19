@@ -368,7 +368,12 @@
                                 <div class="bg-white dark:bg-slate-700/50 rounded-2xl p-4 border border-gray-200 dark:border-slate-600 hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
                                     <div class="flex justify-between items-center">
                                         <div class="flex-1">
-                                            <h5 class="text-gray-900 dark:text-white font-bold text-lg mb-1">{{ $detail->produit->nom }}</h5>
+                                            <h5 class="text-gray-900 dark:text-white font-bold text-lg mb-1">
+                                                {{ $detail->produit->nom }}
+                                                @if(optional($detail)->variant)
+                                                    <span class="text-sm text-gray-500 dark:text-gray-300 font-medium ml-2">({{ $detail->variant->nom }})</span>
+                                                @endif
+                                            </h5>
                                             <div class="flex items-center gap-3 text-sm">
                                                 <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-lg font-medium">
                                                     Qté: {{ $detail->quantite }}

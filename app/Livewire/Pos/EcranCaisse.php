@@ -50,19 +50,22 @@ class EcranCaisse extends Component
     #[Computed]
     public function produits()
     {
-        return Produit::query()
-            ->when($this->categorieSelectionnee, function ($query) {
-                $query->where('categorie_id', $this->categorieSelectionnee);
-            })
-            ->when($this->recherche, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('nom', 'like', '%' . $this->recherche . '%')
-                      ->orWhere('description', 'like', '%' . $this->recherche . '%');
-                });
-            })
-            ->where('active', true)
-            ->orderBy('nom')
-            ->get();
+        // On ne retourne que les produits qui ont au moins une variante active
+        return Produit::with(['variants' => function($q) {
+            $q->where('active', true);
+        }])
+        ->when($this->categorieSelectionnee, function ($query) {
+            $query->where('categorie_id', $this->categorieSelectionnee);
+        })
+        ->when($this->recherche, function ($query) {
+            $query->where(function ($q) {
+                $q->where('nom', 'like', '%' . $this->recherche . '%')
+                  ->orWhere('description', 'like', '%' . $this->recherche . '%');
+            });
+        })
+        ->whereHas('variants', function($q) { $q->where('active', true); })
+        ->orderBy('nom')
+        ->get();
     }
 
     /**
@@ -115,15 +118,21 @@ class EcranCaisse extends Component
      */
     public function ajouterAuPanier(int $produitId)
     {
-        $produit = Produit::find($produitId);
+        $produit = Produit::with(['variants' => function($q) { $q->where('active', true); }])->find($produitId);
 
-        if (!$produit || !$produit->active) {
+        if (!$produit || $produit->variants->isEmpty()) {
             $this->messageErreur = 'Produit non disponible';
             return;
         }
 
+        $variant = $produit->variants->first();
+        if (!$variant || !$variant->active) {
+            $this->messageErreur = 'Aucune variante active pour ce produit';
+            return;
+        }
+
         // Vérifier le stock
-        if ($produit->stock !== null && $produit->stock <= 0) {
+        if ($variant->stock !== null && $variant->stock <= 0) {
             $this->messageErreur = 'Stock insuffisant pour ' . $produit->nom;
             return;
         }
@@ -133,7 +142,7 @@ class EcranCaisse extends Component
         
         if (isset($this->panier[$cle])) {
             // Vérifier si on peut ajouter (stock)
-            if ($produit->stock !== null && $this->panier[$cle]['quantite'] >= $produit->stock) {
+            if ($variant->stock !== null && $this->panier[$cle]['quantite'] >= $variant->stock) {
                 $this->messageErreur = 'Stock insuffisant pour ' . $produit->nom;
                 return;
             }
@@ -143,10 +152,11 @@ class EcranCaisse extends Component
             $this->panier[$cle] = [
                 'id' => $produit->id,
                 'nom' => $produit->nom,
-                'prix' => $produit->prix,
+                'prix' => $variant->prix,
                 'quantite' => 1,
-                'stock' => $produit->stock,
+                'stock' => $variant->stock,
                 'image' => $produit->image,
+                'variant_id' => $variant->id,
             ];
         }
 
@@ -247,15 +257,16 @@ class EcranCaisse extends Component
                 VenteDetail::create([
                     'vente_id' => $vente->id,
                     'produit_id' => $item['id'],
+                    'variant_id' => $item['variant_id'] ?? null,
                     'quantite' => $item['quantite'],
                     'prix_unitaire' => $item['prix'],
                     'sous_total' => $item['prix'] * $item['quantite'],
                 ]);
 
-                // Décrémenter le stock
-                $produit = Produit::find($item['id']);
-                if ($produit && $produit->stock !== null) {
-                    $produit->decrement('stock', $item['quantite']);
+                // Décrémenter le stock de la variante
+                $variant = \App\Models\Variant::find($item['variant_id'] ?? null);
+                if ($variant && $variant->stock !== null) {
+                    $variant->decrement('stock', $item['quantite']);
                 }
             }
 

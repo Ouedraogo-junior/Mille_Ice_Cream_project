@@ -6,6 +6,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Models\Categorie;
 use App\Models\Produit;
+use App\Models\Variant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -292,7 +293,25 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($produits as $prod) {
-            Produit::create($prod);
+            // Extraire prix/stock si présents pour créer une variante
+            $prix = $prod['prix'] ?? null;
+            $stock = $prod['stock'] ?? null;
+
+            // Ne pas passer prix/stock à la création du produit
+            $prodData = $prod;
+            unset($prodData['prix'], $prodData['stock']);
+
+            $produit = Produit::create($prodData);
+
+            // Créer une variante par défaut si on a un prix (sinon variante vide)
+            Variant::create([
+                'produit_id' => $produit->id,
+                'nom' => 'Standard',
+                'prix' => $prix ?? 0,
+                'stock' => $stock ?? 0,
+                'seuil_alerte' => $prod['seuil_alerte'] ?? 10,
+                'active' => true,
+            ]);
         }
 
         $this->command->info('✅ Base de données initialisée avec succès !');

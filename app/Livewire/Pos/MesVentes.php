@@ -45,7 +45,7 @@ class MesVentes extends Component
         $query = Vente::query()
             ->where('user_id', auth()->id())
             ->where('est_annulee', false)
-            ->with(['details.produit', 'caissier']);
+            ->with(['details.produit', 'details.variant', 'caissier']);
 
         // Filtre par dates
         if ($this->dateDebut) {
@@ -79,7 +79,7 @@ class MesVentes extends Component
             return null;
         }
 
-        return Vente::with(['details.produit', 'caissier'])
+        return Vente::with(['details.produit', 'details.variant', 'caissier'])
             ->find($this->venteSelectionnee);
     }
 

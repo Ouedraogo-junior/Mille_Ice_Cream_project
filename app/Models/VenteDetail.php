@@ -1,10 +1,7 @@
 <?php
-// 📁 app/Models/VenteDetail.php
-
 namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VenteDetail extends Model
@@ -39,6 +36,14 @@ class VenteDetail extends Model
     public function produit(): BelongsTo
     {
         return $this->belongsTo(Produit::class);
+    }
+
+    /**
+     * Un détail concerne une variante
+     */
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Variant::class);
     }
 
     /**
