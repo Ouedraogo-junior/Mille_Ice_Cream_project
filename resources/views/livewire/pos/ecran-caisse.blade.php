@@ -1,3 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MILA ICE CREAM - CAISSE</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <livewire:styles />
+</head>
+<body class="h-full">
+
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pb-24 relative overflow-hidden">
     {{-- Animated background elements --}}
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
@@ -103,7 +114,7 @@
         </div>
     @endif
 
-    {{-- Header moderne avec glassmorphism --}}
+    {{-- Header moderne avec glassmorphism et liens ajoutés --}}
     <div class="sticky top-0 z-40 backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-lg mb-8">
         <div class="container mx-auto px-4 py-5">
             <div class="flex items-center justify-between gap-6">
@@ -115,6 +126,25 @@
                         <h1 class="text-2xl font-bold text-white">Point de Vente</h1>
                         <p class="text-xs text-purple-300">Système moderne de caisse</p>
                     </div>
+                </div>
+                
+                {{-- Liens Statistiques et Caisse ajoutés --}}
+                <div class="hidden md:flex items-center gap-3">
+                    <a href="{{ route('dashboard') }}" 
+                       class="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all transform hover:scale-105 {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' : 'bg-white/10 text-purple-200 hover:bg-white/20 border border-white/20' }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <span>Statistiques</span>
+                    </a>
+                    
+                    <a href="{{ route('caisse') }}" 
+                       class="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all transform hover:scale-105 {{ request()->routeIs('caisse') ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' : 'bg-white/10 text-purple-200 hover:bg-white/20 border border-white/20' }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        <span>Caisse</span>
+                    </a>
                 </div>
                 
                 {{-- Barre de recherche moderne --}}
@@ -146,6 +176,16 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- Icône paramètres liée au profil --}}
+                <a href="{{ route('profile.edit') }}" 
+                   class="p-3 hover:bg-white/10 rounded-xl transition-all transform hover:scale-110 active:scale-95" 
+                   title="Profil et Paramètres">
+                    <svg class="w-6 h-6 text-purple-300 hover:text-purple-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </a>
             </div>
         </div>
     </div>
@@ -247,6 +287,14 @@
                                     <p class="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">{{ number_format(optional($variant)->prix ?? 0, 0, ',', ' ') }}</p>
                                     <span class="text-xs text-purple-300 font-semibold">FCFA</span>
                                 </div>
+                                    {{-- Affichage du stock courant (toujours visible si renseigné) --}}
+                                    @if(optional($variant)->stock !== null)
+                                        <div class="mt-2">
+                                            <span class="text-sm font-medium {{ $variant->stock <= 0 ? 'text-red-400' : ($variant->stock <= 5 ? 'text-orange-300' : 'text-emerald-300') }}">
+                                                Stock : {{ $variant->stock }}
+                                            </span>
+                                        </div>
+                                    @endif
                             </div>
 
                             {{-- Loading indicator moderne --}}
@@ -384,127 +432,127 @@
                         </div>
 
                         {{-- Encaisser : Montant reçu et monnaie (si espèce) --}}
-@if($modePaiement === 'espece')
-    <div class="mb-4 bg-white/5 rounded-2xl p-4 border border-white/10">
-        <label class="block text-sm font-semibold mb-2 text-purple-300 flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-            </svg>
-            Somme encaissée
-        </label>
-        
-        <div class="relative">
-            <input 
-                type="number" 
-                step="1" 
-                min="0" 
-                wire:model.live="sommeEncaissee"
-                placeholder="Entrez le montant reçu..."
-                class="w-full px-4 py-3 rounded-xl bg-white/10 text-white text-lg font-semibold placeholder-purple-300/50 border border-white/20 focus:outline-none focus:border-purple-400 focus:bg-white/15 transition-all"
-            >
-            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-purple-300 font-medium text-sm">FCFA</span>
-        </div>
+                        @if($modePaiement === 'espece')
+                            <div class="mb-4 bg-white/5 rounded-2xl p-4 border border-white/10">
+                                <label class="block text-sm font-semibold mb-2 text-purple-300 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                    Somme encaissée
+                                </label>
+                                
+                                <div class="relative">
+                                    <input 
+                                        type="number" 
+                                        step="1" 
+                                        min="0" 
+                                        wire:model.live="sommeEncaissee"
+                                        placeholder="Entrez le montant reçu..."
+                                        class="w-full px-4 py-3 rounded-xl bg-white/10 text-white text-lg font-semibold placeholder-purple-300/50 border border-white/20 focus:outline-none focus:border-purple-400 focus:bg-white/15 transition-all"
+                                    >
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-purple-300 font-medium text-sm">FCFA</span>
+                                </div>
 
-        {{-- Boutons de montants rapides --}}
-        <div class="mt-3 grid grid-cols-4 gap-2">
-            <button 
-                type="button" 
-                wire:click="ajouterMontantEncaisse(500)" 
-                class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all transform hover:scale-105 active:scale-95 border border-white/20">
-                +500
-            </button>
-            <button 
-                type="button" 
-                wire:click="ajouterMontantEncaisse(1000)" 
-                class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all transform hover:scale-105 active:scale-95 border border-white/20">
-                +1K
-            </button>
-            <button 
-                type="button" 
-                wire:click="ajouterMontantEncaisse(2000)" 
-                class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all transform hover:scale-105 active:scale-95 border border-white/20">
-                +2K
-            </button>
-            <button 
-                type="button" 
-                wire:click="definirMontantExact()" 
-                class="px-3 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-sm font-bold transition-all transform hover:scale-105 active:scale-95 shadow-lg">
-                Exact
-            </button>
-        </div>
+                                {{-- Boutons de montants rapides --}}
+                                <div class="mt-3 grid grid-cols-4 gap-2">
+                                    <button 
+                                        type="button" 
+                                        wire:click="ajouterMontantEncaisse(500)" 
+                                        class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all transform hover:scale-105 active:scale-95 border border-white/20">
+                                        +500
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        wire:click="ajouterMontantEncaisse(1000)" 
+                                        class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all transform hover:scale-105 active:scale-95 border border-white/20">
+                                        +1K
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        wire:click="ajouterMontantEncaisse(2000)" 
+                                        class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all transform hover:scale-105 active:scale-95 border border-white/20">
+                                        +2K
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        wire:click="definirMontantExact()" 
+                                        class="px-3 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-sm font-bold transition-all transform hover:scale-105 active:scale-95 shadow-lg">
+                                        Exact
+                                    </button>
+                                </div>
 
-        {{-- Affichage du calcul --}}
-        <div class="mt-4 space-y-2">
-            {{-- Total à payer --}}
-            <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                <span class="text-sm text-purple-200 flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                    Total à payer
-                </span>
-                <span class="font-bold text-white text-lg">{{ number_format($this->totalPanier, 0, ',', ' ') }} <span class="text-sm text-purple-300">FCFA</span></span>
-            </div>
+                                {{-- Affichage du calcul --}}
+                                <div class="mt-4 space-y-2">
+                                    {{-- Total à payer --}}
+                                    <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                                        <span class="text-sm text-purple-200 flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                            </svg>
+                                            Total à payer
+                                        </span>
+                                        <span class="font-bold text-white text-lg">{{ number_format($this->totalPanier, 0, ',', ' ') }} <span class="text-sm text-purple-300">FCFA</span></span>
+                                    </div>
 
-            {{-- Somme reçue --}}
-            <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                <span class="text-sm text-purple-200 flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Somme reçue
-                </span>
-                <span class="font-bold text-blue-300 text-lg">{{ number_format(floatval($sommeEncaissee ?? 0), 0, ',', ' ') }} <span class="text-sm text-purple-300">FCFA</span></span>
-            </div>
+                                    {{-- Somme reçue --}}
+                                    <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                                        <span class="text-sm text-purple-200 flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Somme reçue
+                                        </span>
+                                        <span class="font-bold text-blue-300 text-lg">{{ number_format(floatval($sommeEncaissee ?? 0), 0, ',', ' ') }} <span class="text-sm text-purple-300">FCFA</span></span>
+                                    </div>
 
-            {{-- Monnaie à rendre avec indication visuelle --}}
-            <div class="flex items-center justify-between p-4 rounded-xl border-2 transition-all
-                {{ $this->monnaie > 0 ? 'bg-gradient-to-r from-emerald-500/20 to-green-500/20 border-emerald-400/50' : 
-                   ($sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier ? 'bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-400/50' : 'bg-white/5 border-white/10') }}">
-                <span class="text-sm font-semibold flex items-center gap-2
-                    {{ $this->monnaie > 0 ? 'text-emerald-300' : 
-                       ($sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier ? 'text-red-300' : 'text-purple-200') }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        @if($this->monnaie > 0)
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        @elseif($sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier)
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        @else
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                    {{-- Monnaie à rendre avec indication visuelle --}}
+                                    <div class="flex items-center justify-between p-4 rounded-xl border-2 transition-all
+                                        {{ $this->monnaie > 0 ? 'bg-gradient-to-r from-emerald-500/20 to-green-500/20 border-emerald-400/50' : 
+                                           ($sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier ? 'bg-gradient-to-r from-red-500/20 to-rose-500/20 border-red-400/50' : 'bg-white/5 border-white/10') }}">
+                                        <span class="text-sm font-semibold flex items-center gap-2
+                                            {{ $this->monnaie > 0 ? 'text-emerald-300' : 
+                                               ($sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier ? 'text-red-300' : 'text-purple-200') }}">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                @if($this->monnaie > 0)
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                @elseif($sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier)
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                @else
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                                @endif
+                                            </svg>
+                                            {{ $sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier ? 'Montant insuffisant' : 'Monnaie à rendre' }}
+                                        </span>
+                                        <span class="font-bold text-2xl
+                                            {{ $this->monnaie > 0 ? 'text-emerald-300 animate-pulse' : 
+                                               ($sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier ? 'text-red-300' : 'text-white') }}">
+                                            {{ number_format($this->monnaie, 0, ',', ' ') }} <span class="text-sm">FCFA</span>
+                                        </span>
+                                    </div>
+
+                                    {{-- Message d'aide --}}
+                                    @if($sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier)
+                                        <div class="flex items-start gap-2 p-3 bg-red-500/10 border border-red-400/30 rounded-lg">
+                                            <svg class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                            </svg>
+                                            <p class="text-xs text-red-300">
+                                                Il manque encore <span class="font-bold">{{ number_format(floatval($this->totalPanier - floatval($sommeEncaissee ?? 0)), 0, ',', ' ') }} FCFA</span>
+                                            </p>
+                                        </div>
+                                    @elseif($this->monnaie > 0)
+                                        <div class="flex items-start gap-2 p-3 bg-emerald-500/10 border border-emerald-400/30 rounded-lg">
+                                            <svg class="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            <p class="text-xs text-emerald-300">
+                                                <span class="font-bold">Parfait !</span> Remettez {{ number_format($this->monnaie, 0, ',', ' ') }} FCFA au client
+                                            </p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
                         @endif
-                    </svg>
-                    {{ $sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier ? 'Montant insuffisant' : 'Monnaie à rendre' }}
-                </span>
-                <span class="font-bold text-2xl
-                    {{ $this->monnaie > 0 ? 'text-emerald-300 animate-pulse' : 
-                       ($sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier ? 'text-red-300' : 'text-white') }}">
-                    {{ number_format($this->monnaie, 0, ',', ' ') }} <span class="text-sm">FCFA</span>
-                </span>
-            </div>
-
-            {{-- Message d'aide --}}
-            @if($sommeEncaissee > 0 && $sommeEncaissee < $this->totalPanier)
-                <div class="flex items-start gap-2 p-3 bg-red-500/10 border border-red-400/30 rounded-lg">
-                    <svg class="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                        <p class="text-xs text-red-300">
-                        Il manque encore <span class="font-bold">{{ number_format(floatval($this->totalPanier - floatval($sommeEncaissee ?? 0)), 0, ',', ' ') }} FCFA</span>
-                    </p>
-                </div>
-            @elseif($this->monnaie > 0)
-                <div class="flex items-start gap-2 p-3 bg-emerald-500/10 border border-emerald-400/30 rounded-lg">
-                    <svg class="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <p class="text-xs text-emerald-300">
-                        <span class="font-bold">Parfait !</span> Remettez {{ number_format($this->monnaie, 0, ',', ' ') }} FCFA au client
-                    </p>
-                </div>
-            @endif
-        </div>
-    </div>
-@endif
 
                         {{-- Total avec effet premium --}}
                         <div class="relative mb-6 overflow-hidden rounded-2xl">
@@ -563,87 +611,86 @@
         </div>
     </div>
 
-
-{{-- Styles personnalisés --}}
-<style>
-    @keyframes blob {
-        0%, 100% {
-            transform: translate(0, 0) scale(1);
+    {{-- Styles personnalisés --}}
+    <style>
+        @keyframes blob {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(20px, -50px) scale(1.1);
+            }
+            50% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+            75% {
+                transform: translate(50px, 50px) scale(1.05);
+            }
         }
-        25% {
-            transform: translate(20px, -50px) scale(1.1);
+        
+        .animate-blob {
+            animation: blob 7s infinite;
         }
-        50% {
-            transform: translate(-20px, 20px) scale(0.9);
+        
+        .animation-delay-2000 {
+            animation-delay: 2s;
         }
-        75% {
-            transform: translate(50px, 50px) scale(1.05);
+        
+        .animation-delay-4000 {
+            animation-delay: 4s;
         }
-    }
-    
-    .animate-blob {
-        animation: blob 7s infinite;
-    }
-    
-    .animation-delay-2000 {
-        animation-delay: 2s;
-    }
-    
-    .animation-delay-4000 {
-        animation-delay: 4s;
-    }
-    
-    @keyframes gradient-x {
-        0%, 100% {
-            background-position: 0% 50%;
+        
+        @keyframes gradient-x {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
         }
-        50% {
-            background-position: 100% 50%;
+        
+        .animate-gradient-x {
+            background-size: 200% 200%;
+            animation: gradient-x 3s ease infinite;
         }
-    }
-    
-    .animate-gradient-x {
-        background-size: 200% 200%;
-        animation: gradient-x 3s ease infinite;
-    }
-    
-    /* Scrollbar personnalisée */
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: linear-gradient(to bottom, #a855f7, #ec4899);
-        border-radius: 10px;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(to bottom, #9333ea, #db2777);
-    }
-    
-    .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-    }
-    
-    .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-    
-    /* Animation de pulsation douce */
-    @keyframes soft-pulse {
-        0%, 100% {
-            opacity: 1;
+        
+        /* Scrollbar personnalisée */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
         }
-        50% {
-            opacity: 0.8;
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
         }
-    }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #a855f7, #ec4899);
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #9333ea, #db2777);
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Animation de pulsation douce */
+        @keyframes soft-pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
 </style>
 
     {{-- Footer moderne avec info utilisateur --}}
@@ -690,12 +737,12 @@
 
                 {{-- Actions rapides --}}
                 <div class="flex items-center gap-2">
-                    <button class="p-2 hover:bg-white/10 rounded-lg transition-all transform hover:scale-110 active:scale-95" title="Paramètres">
+                    <a href="{{ route('profile.edit') }}" class="p-2 hover:bg-white/10 rounded-lg transition-all transform hover:scale-110 active:scale-95" title="Paramètres">
                         <svg class="w-5 h-5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
-                    </button>
+                    </a>
                     
                     <div class="h-6 w-px bg-white/20"></div>
                     
@@ -718,6 +765,56 @@
 @endpush
 @script
 <script>
+// Gestion du mode offline
+let isOfflineMode = !navigator.onLine;
+
+// Vérifier le statut
+function checkOfflineStatus() {
+    isOfflineMode = !navigator.onLine;
+    $wire.call('updateOfflineStatus', isOfflineMode);
+}
+
+// Écouter les changements
+window.addEventListener('online', () => {
+    isOfflineMode = false;
+    $wire.call('updateOfflineStatus', false);
+    console.log('🟢 Connexion rétablie');
+});
+
+window.addEventListener('offline', () => {
+    isOfflineMode = true;
+    $wire.call('updateOfflineStatus', true);
+    console.log('🔴 Mode hors ligne');
+});
+
+// Vérifier au chargement
+checkOfflineStatus();
+
+// Écouter la sauvegarde offline
+$wire.on('save-offline-vente', async (event) => {
+    if (!window.offlineSync) {
+        alert('Service offline non disponible');
+        return;
+    }
+
+    try {
+        const id = await window.offlineSync.enregistrerVentePending(event.venteData);
+        console.log('✅ Vente sauvegardée localement:', id);
+        
+        // Vérifier le nombre de ventes en attente
+        const ventes = await window.offlineSync.getVentesPending();
+        $wire.set('ventesPendingCount', ventes.length);
+        
+    } catch (error) {
+        console.error('❌ Erreur sauvegarde offline:', error);
+        alert('Erreur lors de la sauvegarde locale');
+    }
+});
+
+// Écouter la synchronisation réussie
+$wire.on('ventes-synchronisees', () => {
+    $wire.call('$refresh');
+});
     // Écouter l'événement de vente validée pour impression
     $wire.on('vente-validee', (event) => {
         console.log('Vente validée, ID:', event.venteId);

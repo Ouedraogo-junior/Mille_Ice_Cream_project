@@ -74,7 +74,11 @@ class Profile extends Component
 
     public function render()
     {
-        return view('livewire.settings.profile')
-            ->layout('layouts.admin'); // ou le nom de votre layout
+        if (auth()->user()->isAdmin())
+            return view('livewire.settings.profile')
+            ->layout('layouts.admin');
+        else
+             return view('livewire.settings.profile')
+            ->layout('layouts.caissier');
     }
 }

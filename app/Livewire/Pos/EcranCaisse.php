@@ -35,6 +35,9 @@ class EcranCaisse extends Component
     public ?string $messageSucces = null;
     public ?string $messageErreur = null;
 
+    // Offline mode states
+    public bool $isOfflineMode = false;
+    public int $ventesPendingCount = 0;
     /**
      * Chargement initial du composant
      */
@@ -43,6 +46,9 @@ class EcranCaisse extends Component
         // Initialiser le panier vide
         $this->panier = [];
         $this->categorieSelectionnee = null;
+
+        // Vérifier le mode offline (via JavaScript)
+        $this->dispatch('check-offline-status');
     }
 
     /**
@@ -220,9 +226,55 @@ class EcranCaisse extends Component
     }
 
     /**
-     * Valider et enregistrer la vente
+ * Valider vente avec support offline
+ */
+public function validerVente()
+{
+    if (empty($this->panier)) {
+        $this->messageErreur = 'Le panier est vide';
+        return;
+    }
+
+    // Si mode offline, enregistrer localement
+    if ($this->isOfflineMode) {
+        $this->validerVenteOffline();
+        return;
+    }
+
+    // Sinon, mode normal (code existant)
+    $this->validerVenteOnline();
+}
+
+/**
+ * Enregistrer vente en mode offline
+ */
+private function validerVenteOffline()
+{
+    try {
+        $venteData = [
+            'panier' => array_values($this->panier),
+            'total' => $this->totalPanier,
+            'mode_paiement' => $this->modePaiement,
+            'montant' => $this->modePaiement === 'espece' ? floatval($this->sommeEncaissee) : $this->totalPanier,
+            'monnaie_rendue' => $this->modePaiement === 'espece' ? max(0, floatval($this->sommeEncaissee) - $this->totalPanier) : 0,
+            'timestamp' => now()->timestamp,
+        ];
+
+        // Envoyer au JavaScript pour sauvegarde locale
+        $this->dispatch('save-offline-vente', venteData: $venteData);
+        
+        $this->panier = [];
+        $this->sommeEncaissee = 0;
+        $this->messageSucces = 'Vente enregistrée en mode hors ligne. Elle sera synchronisée automatiquement.';
+        
+    } catch (\Exception $e) {
+        $this->messageErreur = 'Erreur : ' . $e->getMessage();
+    }
+}
+    /**
+     * Valider et enregistrer la vente en mode online
      */
-    public function validerVente()
+    public function validerVenteOnline()
     {
         // Validation
         if (empty($this->panier)) {
@@ -305,6 +357,14 @@ class EcranCaisse extends Component
         }
     }
 
+    /**
+ * Écouter le changement de statut offline
+ */
+#[On('offline-status-changed')]
+public function updateOfflineStatus($isOffline)
+{
+    $this->isOfflineMode = $isOffline;
+}
     /**
      * Fermer la confirmation et recommencer
      */

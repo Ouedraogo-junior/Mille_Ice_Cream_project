@@ -127,6 +127,7 @@
         </p>
     </div>
     
+    <x-offline-indicator />
     <livewire:scripts />
 </body>
 </html>
