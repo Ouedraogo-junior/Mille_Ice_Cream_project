@@ -10,6 +10,8 @@ use App\Models\VenteDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Rapports extends Component
 {
@@ -172,6 +174,81 @@ class Rapports extends Component
             ->groupBy(DB::raw('DATE(created_at)'))
             ->orderBy('date')
             ->get();
+    }
+
+    /**
+     * Exporter les rapports en PDF
+     */
+    public function exporterPDF()
+    {
+        try {
+            // Récupérer toutes les données nécessaires
+            $donnees = [
+                'dateDebut' => $this->dateDebut,
+                'dateFin' => $this->dateFin,
+                'chiffreAffaires' => $this->chiffreAffaires,
+                'nombreVentes' => $this->nombreVentes,
+                'panierMoyen' => $this->panierMoyen,
+                'produitsVendus' => $this->produitsVendus,
+                'evolutionCA' => $this->evolutionCA,
+                'topProduits' => $this->topProduits,
+                'ventesParCategorie' => $this->ventesParCategorie,
+                'performanceCaissiers' => $this->performanceCaissiers,
+                'evolutionVentes' => $this->evolutionVentes,
+                'dateGeneration' => Carbon::now()->format('d/m/Y H:i'),
+            ];
+
+            // Générer le PDF
+            $pdf = Pdf::loadView('admin.rapports-pdf', $donnees)
+                ->setPaper('a4', 'portrait')
+                ->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => true,
+                    'defaultFont' => 'sans-serif'
+                ]);
+
+            $nomFichier = 'rapport_ventes_' . 
+                Carbon::parse($this->dateDebut)->format('Y-m-d') . '_' . 
+                Carbon::parse($this->dateFin)->format('Y-m-d') . '.pdf';
+
+            return response()->streamDownload(function() use ($pdf) {
+                echo $pdf->output();
+            }, $nomFichier);
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Erreur lors de l\'export PDF : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Exporter les rapports en Excel
+     */
+    public function exporterExcel()
+    {
+        try {
+            $nomFichier = 'rapport_ventes_' . 
+                Carbon::parse($this->dateDebut)->format('Y-m-d') . '_' . 
+                Carbon::parse($this->dateFin)->format('Y-m-d') . '.xlsx';
+
+            return Excel::download(
+                new \App\Exports\RapportsExport(
+                    $this->dateDebut,
+                    $this->dateFin,
+                    $this->chiffreAffaires,
+                    $this->nombreVentes,
+                    $this->panierMoyen,
+                    $this->produitsVendus,
+                    $this->topProduits,
+                    $this->ventesParCategorie,
+                    $this->performanceCaissiers,
+                    $this->evolutionVentes
+                ),
+                $nomFichier
+            );
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Erreur lors de l\'export Excel : ' . $e->getMessage());
+        }
     }
 
     private function resetStats()

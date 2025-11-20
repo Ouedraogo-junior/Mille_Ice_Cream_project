@@ -104,18 +104,92 @@
     @endif
 
     {{-- Header moderne avec glassmorphism --}}
-    <div class="sticky top-0 z-40 backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-lg mb-8">
+    <div class="sticky top-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-lg mb-8">
         <div class="container mx-auto px-4 py-5">
             <div class="flex items-center justify-between gap-6">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-                        <span class="text-2xl">🍦</span>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-bold text-white">Point de Vente</h1>
-                        <p class="text-xs text-purple-300">Système moderne de caisse</p>
-                    </div>
+                <div class="flex items-center gap-3" x-data="{ open: false }">
+    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+        <span class="text-2xl">🍦</span>
+    </div>
+    <div class="relative">
+        <button @click="open = !open" class="flex items-center gap-2 group">
+            <div>
+                <h1 class="text-2xl font-bold text-white group-hover:text-purple-300 transition">Point de Vente</h1>
+                <p class="text-xs text-purple-300">Système moderne de caisse</p>
+            </div>
+            <svg class="w-5 h-5 text-white transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+        
+        <!-- Dropdown Menu -->
+        <div x-show="open" 
+             @click.away="open = false"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="absolute left-0 top-full mt-2 w-64 bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-2 z-50">
+            
+            <a href="{{ route('caisse') }}" 
+               class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 transition-all group {{ request()->routeIs('caisse') ? 'bg-white/15' : '' }}">
+                <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
                 </div>
+                <div>
+                    <p class="font-semibold text-white group-hover:text-purple-300">Caisse</p>
+                    <p class="text-xs text-purple-300">Enregistrer des ventes</p>
+                </div>
+            </a>
+
+            <a href="{{ route('mes-ventes') }}" 
+               class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 transition-all group {{ request()->routeIs('mes-ventes') ? 'bg-white/15' : '' }}">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-white group-hover:text-purple-300">Historique</p>
+                    <p class="text-xs text-purple-300">Mes ventes passées</p>
+                </div>
+            </a>
+
+            <a href="{{ route('dashboard') }}" 
+               class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 transition-all group {{ request()->routeIs('dashboard') ? 'bg-white/15' : '' }}">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-white group-hover:text-purple-300">Statistiques</p>
+                    <p class="text-xs text-purple-300">Performances & rapports</p>
+                </div>
+            </a>
+
+            <div class="h-px bg-white/20 my-2"></div>
+
+            <a href="{{ route('profile.edit') }}" 
+               class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 transition-all group">
+                <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-white group-hover:text-purple-300">Profil</p>
+                    <p class="text-xs text-purple-300">Paramètres du compte</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
                 
                 {{-- Barre de recherche moderne --}}
                 <div class="flex-1 max-w-xl relative group">
@@ -261,16 +335,35 @@
             {{-- Effet de brillance au survol --}}
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             
-            {{-- Badge stock --}}
-            @if(optional($variant)->stock !== null && optional($variant)->stock > 0 && optional($variant)->stock <= 5)
-                <span class="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 animate-pulse">
-                    {{ $variant->stock }} restants
-                </span>
-            @elseif(optional($variant)->stock !== null && optional($variant)->stock <= 0)
-                <span class="absolute top-3 right-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
-                    Épuisé
-                </span>
-            @endif
+            {{-- Badge stock amélioré --}}
+@if(optional($variant)->stock !== null)
+    @if($variant->stock <= 0)
+        {{-- Stock épuisé --}}
+        <span class="absolute top-3 right-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
+            Épuisé
+        </span>
+    @elseif($variant->stock <= 5)
+        {{-- Stock faible (alerte) --}}
+        <span class="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 animate-pulse">
+            {{ $variant->stock }} restants
+        </span>
+    @elseif($variant->stock <= 10)
+        {{-- Stock moyen --}}
+        <span class="absolute top-3 right-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
+            {{ $variant->stock }} en stock
+        </span>
+    @else
+        {{-- Stock bon --}}
+        <span class="absolute top-3 right-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
+            {{ $variant->stock }} disponibles
+        </span>
+    @endif
+@else
+    {{-- Pas de gestion de stock pour ce produit --}}
+    <span class="absolute top-3 right-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
+        Disponible
+    </span>
+@endif
 
             {{-- Image produit avec gestion d'erreur --}}
             <div class="relative aspect-square bg-gradient-to-br from-purple-400 via-pink-400 to-purple-500 rounded-xl mb-4 flex items-center justify-center text-5xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-shadow duration-300">
@@ -340,14 +433,38 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
 
-            {{-- Infos produit --}}
-            <div class="relative z-10">
-                <h3 class="font-bold text-base text-white mb-2 group-hover:text-purple-300 transition line-clamp-2">{{ $produit->nom }}</h3>
-                <div class="flex items-center justify-between">
-                    <p class="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">{{ number_format(optional($variant)->prix ?? 0, 0, ',', ' ') }}</p>
-                    <span class="text-xs text-purple-300 font-semibold">FCFA</span>
+           {{-- Infos produit --}}
+<div class="relative z-10">
+    <h3 class="font-bold text-base text-white mb-2 group-hover:text-purple-300 transition line-clamp-2">{{ $produit->nom }}</h3>
+    <div class="flex items-center justify-between">
+        <p class="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">{{ number_format(optional($variant)->prix ?? 0, 0, ',', ' ') }}</p>
+        <span class="text-xs text-purple-300 font-semibold">FCFA</span>
+    </div>
+    
+    {{-- AJOUTE CETTE NOUVELLE SECTION ICI --}}
+    {{-- Barre de stock visuelle --}}
+    @if(optional($variant)->stock !== null)
+        <div class="mt-3 space-y-1">
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-purple-300 font-medium">Stock</span>
+                <span class="font-bold {{ $variant->stock <= 5 ? 'text-red-400' : ($variant->stock <= 10 ? 'text-yellow-400' : 'text-emerald-400') }}">
+                    {{ $variant->stock }}
+                </span>
+            </div>
+            {{-- Barre de progression --}}
+            @php
+                // Calculer le pourcentage (max 50 pour l'échelle)
+                $maxStock = 50;
+                $percentage = min(100, ($variant->stock / $maxStock) * 100);
+            @endphp
+            <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500 {{ $variant->stock <= 5 ? 'bg-gradient-to-r from-red-500 to-rose-600' : ($variant->stock <= 10 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-emerald-500 to-green-600') }}"
+                     style="width: {{ $percentage }}%">
                 </div>
             </div>
+        </div>
+    @endif
+</div>
 
             {{-- Loading indicator --}}
             <div wire:loading wire:target="ajouterAuPanier({{ $produit->id }})" 
@@ -773,12 +890,45 @@
                     </div>
                 </div>
 
-                {{-- Stats rapides --}}
-                <div class="hidden md:flex items-center gap-6">
-                    <div class="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
-                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-xs text-purple-300 font-medium">Système actif</span>
+                {{-- Indicateurs système --}}
+            <div class="hidden md:flex items-center gap-4" x-data="offlineIndicator()" x-init="init()">
+                {{-- Indicateur de connexion/offline --}}
+                    <div class="flex items-center gap-2 px-4 py-2 rounded-lg border transition-all"
+                     :class="{
+                         'bg-green-500/10 border-green-500/30': isOnline && !isSyncing,
+                         'bg-red-500/10 border-red-500/30': !isOnline,
+                         'bg-orange-500/10 border-orange-500/30': isSyncing
+                     }">
+                    <div class="relative">
+                        <div class="w-2 h-2 rounded-full transition-all"
+                             :class="{
+                                 'bg-green-500': isOnline && !isSyncing,
+                                 'bg-red-500': !isOnline,
+                                 'bg-orange-500': isSyncing
+                             }">
+                        </div>
+                        <div class="absolute inset-0 w-2 h-2 rounded-full animate-ping"
+                             :class="{
+                                 'bg-green-400': isOnline && !isSyncing,
+                                 'bg-red-400': !isOnline,
+                                 'bg-orange-400': isSyncing
+                             }"
+                             x-show="!isOnline || isSyncing"></div>
                     </div>
+                    <span class="text-xs font-medium transition-colors"
+                          :class="{
+                              'text-green-400': isOnline && !isSyncing,
+                              'text-red-400': !isOnline,
+                              'text-orange-400': isSyncing
+                          }">
+                        <span x-show="isOnline && !isSyncing">Système actif</span>
+                        <span x-show="!isOnline">Mode hors ligne</span>
+                        <span x-show="isSyncing">Synchronisation...</span>
+                    </span>
+                    <span class="text-xs text-cyan-300 font-medium" x-show="pendingCount > 0">
+                        (<span x-text="pendingCount"></span> en attente)
+                    </span>
+                </div>
                     
                     <div class="flex items-center gap-2 text-purple-300 text-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -940,6 +1090,86 @@ $wire.on('ventes-synchronisees', () => {
     
     updateTime();
     setInterval(updateTime, 1000);
+
+    // Fonction Alpine.js pour l'indicateur offline
+    function offlineIndicator() {
+        return {
+            isOnline: navigator.onLine,
+            isSyncing: false,
+            pendingCount: 0,
+            showToast: false,
+            toastMessage: '',
+
+            init() {
+                // Écouter les changements de connexion
+                window.addEventListener('online', () => this.handleOnline());
+                window.addEventListener('offline', () => this.handleOffline());
+
+                // Vérifier les ventes en attente
+                this.checkPendingVentes();
+                
+                // Vérifier périodiquement
+                setInterval(() => this.checkPendingVentes(), 30000); // Toutes les 30s
+            },
+
+            async handleOnline() {
+                this.isOnline = true;
+                this.showNotification('Connexion rétablie ! Synchronisation en cours...');
+                
+                // Attendre un peu pour stabiliser la connexion
+                setTimeout(() => this.syncNow(), 2000);
+            },
+
+            handleOffline() {
+                this.isOnline = false;
+                this.showNotification('Mode hors ligne activé. Les ventes seront synchronisées plus tard.');
+            },
+
+            async checkPendingVentes() {
+                if (!window.offlineSync) return;
+                
+                try {
+                    const ventes = await window.offlineSync.getVentesPending();
+                    this.pendingCount = ventes.length;
+                } catch (error) {
+                    console.error('Erreur check pending:', error);
+                }
+            },
+
+            async syncNow() {
+                if (!this.isOnline || this.isSyncing || !window.offlineSync) return;
+
+                this.isSyncing = true;
+                
+                try {
+                    const result = await window.offlineSync.synchroniserVentes();
+                    
+                    if (result.success && result.synced > 0) {
+                        this.showNotification(`${result.synced} vente(s) synchronisée(s) avec succès !`);
+                        await this.checkPendingVentes();
+                        
+                        // Recharger les données
+                        if (window.Livewire) {
+                            window.Livewire.dispatch('ventes-synchronisees');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erreur sync:', error);
+                    this.showNotification('Erreur lors de la synchronisation');
+                } finally {
+                    this.isSyncing = false;
+                }
+            },
+
+            showNotification(message) {
+                this.toastMessage = message;
+                this.showToast = true;
+                setTimeout(() => {
+                    this.showToast = false;
+                }, 4000);
+            }
+        }
+    }
 </script>
 @endscript
 </div>

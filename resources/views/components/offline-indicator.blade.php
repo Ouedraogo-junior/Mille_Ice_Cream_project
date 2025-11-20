@@ -1,7 +1,7 @@
 <!-- resources/views/components/offline-indicator.blade.php -->
 <div x-data="offlineIndicator()" 
      x-init="init()"
-     class="fixed bottom-6 left-6 z-50">
+     class="fixed bottom-24 left-6 z-50">
     
     <!-- Indicateur de statut -->
     <div class="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl px-6 py-4 border-2 transition-all duration-300"
