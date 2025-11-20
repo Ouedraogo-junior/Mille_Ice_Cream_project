@@ -4,6 +4,7 @@ use App\Livewire\Pos\EcranCaisse;
 use App\Livewire\Admin\GestionProduits;
 use App\Livewire\Admin\GestionCaissiers;
 use App\Livewire\Admin\Rapports;
+use App\Livewire\Admin\GestionAdmins;
 
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
@@ -142,7 +143,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', \App\Livewire\Admin\Settings::class)
             ->name('admin.settings');    
 
-        Route::get('/objectifs', \App\Livewire\Admin\GestionObjectifs::class)->name('objectifs');    
+        // Gestion des objectifs
+        Route::get('/objectifs', \App\Livewire\Admin\GestionObjectifs::class)->name('objectifs');  
+        
+        // Gestion des admins
+        // Route::get('/admins', \App\Livewire\Admin\GestionAdmins::class)->name('admin.admins');
 
         // Historique des ventes (optionnel, si tu veux séparer)
         /* Route::get('/ventes', \App\Livewire\Admin\VentesHistorique::class)
@@ -168,3 +173,6 @@ Route::get('/test-reverb', function () {
 Route::get('/reverb-test', function () {
     return view('reverb-test');
 });
+
+Route::middleware(['auth', 'superadmin'])->get('/admin/gestion-admins', GestionAdmins::class)
+     ->name('admin.gestion-admins');

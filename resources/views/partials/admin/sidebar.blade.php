@@ -156,6 +156,12 @@
             @endif
         </a>
 
+        <a href="{{ route('admin.gestion-admins') }}" 
+            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-cyan-50 transition">
+            <i class="fas fa-user-shield text-cyan-600"></i>
+            <span>Gestion Admins</span>
+        </a>
+
         <!-- Séparateur -->
         <div class="py-2">
             <div class="border-t border-gray-200"></div>
