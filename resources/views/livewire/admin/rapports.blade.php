@@ -151,7 +151,12 @@
                                 {{ $index + 1 }}
                             </div>
                             <div class="flex-1">
-                                <h4 class="font-semibold text-gray-800">{{ $item->nom }}</h4>
+                                <h4 class="font-semibold text-gray-800 truncate">
+                                    {{ $item->produit_nom }}
+                                    @if($item->variant_nom && $item->variant_nom !== $item->produit_nom)
+                                        <span class="text-gray-600 font-medium">- {{ $item->variant_nom }}</span>
+                                    @endif
+                                </h4>
                                 <p class="text-sm text-gray-600">{{ $item->total_vendus }} unités vendues</p>
                             </div>
                             <div class="text-right">
@@ -197,15 +202,15 @@
                                 <span class="text-lg font-bold text-emerald-600">{{ number_format($item->total_ca) }} F</span>
                             </div>
                             <div class="flex items-center gap-3">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2">
-                                <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" 
-                                    style="width: {{ $chiffreAffaires > 0 ? ($item->total_ca / $chiffreAffaires * 100) : 0 }}%">
+                                <div class="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                                        style="width: {{ min(100, $chiffreAffaires > 0 ? ($item->total_ca / $chiffreAffaires * 100) : 0) }}%">
+                                    </div>
                                 </div>
+                                <span class="text-sm font-semibold text-gray-600 shrink-0">
+                                    {{ number_format(min(100, $chiffreAffaires > 0 ? ($item->total_ca / $chiffreAffaires * 100) : 0), 1) }}%
+                                </span>
                             </div>
-                            <span class="text-sm font-semibold text-gray-600">
-                                {{ number_format($chiffreAffaires > 0 ? ($item->total_ca / $chiffreAffaires * 100) : 0, 1) }}%
-                            </span>
-                        </div>
                         </div>
                     @endforeach
                 </div>

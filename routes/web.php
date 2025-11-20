@@ -13,6 +13,7 @@ use App\Livewire\Settings\TwoFactor;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use App\Events\TestBroadcast;
+use App\Livewire\Admin\GestionObjectifs;
 
 use App\Http\Controllers\TicketController;
 
@@ -140,6 +141,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/settings', \App\Livewire\Admin\Settings::class)
             ->name('admin.settings');    
+
+        Route::get('/objectifs', \App\Livewire\Admin\GestionObjectifs::class)->name('objectifs');    
 
         // Historique des ventes (optionnel, si tu veux séparer)
         /* Route::get('/ventes', \App\Livewire\Admin\VentesHistorique::class)

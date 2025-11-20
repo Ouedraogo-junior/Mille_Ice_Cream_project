@@ -13,7 +13,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'notification_preferences'
+        'name', 'email', 'password', 'role', 'notification_preferences', 'pseudo',
     ];
 
     protected $hidden = [
@@ -75,4 +75,17 @@ class User extends Authenticatable
     { 
         return $this->role === 'caissier'; 
     }
+
+    public function getEmailAttribute($value)
+{
+    // Si l'email est null, retourner null au lieu d'une chaîne vide
+    return $value;
+}
+
+// Méthode helper pour obtenir l'identifiant de connexion
+public function getLoginIdentifier(): string
+{
+    return $this->email ?? $this->pseudo ?? '';
+}
+    
 }

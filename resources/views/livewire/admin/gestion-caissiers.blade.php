@@ -131,6 +131,21 @@
                         @enderror
                     </div>
 
+                    <!-- Pseudo (optionnel si email rempli) -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-user text-purple-500 mr-2"></i>
+                            Pseudo de connexion <span class="text-gray-500 font-normal">(obligatoire si pas d’email)</span>
+                        </label>
+                        <input type="text"
+                            wire:model="pseudo"
+                            placeholder="ex: lucas2025"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        @error('pseudo')
+                            <p class="text-red-500 text-sm mt-2">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Email -->
                     <div class="mb-6">
                         <label class="block text-sm font-semibold text-gray-700 mb-2">

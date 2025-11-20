@@ -11,70 +11,82 @@ use Livewire\Component;
 class Profile extends Component
 {
     public string $name = '';
+    public ?string $email = '';
+    public ?string $pseudo = '';
 
-    public string $email = '';
-
-    /**
-     * Mount the component.
-     */
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
+        $user = Auth::user();
+
+        $this->name   = $user->name;
+        $this->email  = $user->email;
+        $this->pseudo = $user->pseudo;
     }
 
-    /**
-     * Update the profile information for the currently authenticated user.
-     */
     public function updateProfileInformation(): void
     {
         $user = Auth::user();
 
-        $validated = $this->validate([
+        $this->validate([
             'name' => ['required', 'string', 'max:255'],
 
             'email' => [
-                'required',
-                'string',
-                'lowercase',
+                'required_without:pseudo',
+                'nullable',
                 'email',
                 'max:255',
                 Rule::unique(User::class)->ignore($user->id),
             ],
+
+            'pseudo' => [
+                'required_without:email',
+                'nullable',
+                'string',
+                'max:30',
+                'regex:/^[a-zA-Z0-9_]+$/',
+                Rule::unique(User::class)->ignore($user->id),
+            ],
+        ], [
+            'email.required_without'  => 'L’email est obligatoire si aucun pseudo n’est renseigné.',
+            'pseudo.required_without' => 'Le pseudo est obligatoire si aucun email n’est renseigné.',
+            'pseudo.regex'            => 'Le pseudo ne peut contenir que des lettres, chiffres et underscores.',
+            'pseudo.unique'          => 'Ce pseudo est déjà utilisé par un autre compte.',
+            'email.unique'            => 'Cet email est déjà utilisé par un autre compte.',
         ]);
 
-        $user->fill($validated);
+        $user->fill([
+            'name'   => $this->name,
+            'email'  => $this->email ?: null,
+            'pseudo' => $this->pseudo ?: null,
+        ]);
 
+        // Si l’email change → on désactive la vérification
         if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
+            $user->email_verified_at = $user->email ? null : $user->email_verified_at;
         }
 
         $user->save();
 
         $this->dispatch('profile-updated', name: $user->name);
+        $this->dispatch('toast', message: 'Profil mis à jour avec succès !', type: 'success');
     }
 
-    /**
-     * Send an email verification notification to the current user.
-     */
     public function resendVerificationNotification(): void
     {
         $user = Auth::user();
 
-        if ($user->hasVerifiedEmail()) {
+        if (!$user->email || $user->hasVerifiedEmail()) {
             $this->redirectIntended(default: route('dashboard', absolute: false));
-
             return;
         }
 
         $user->sendEmailVerificationNotification();
-
         Session::flash('status', 'verification-link-sent');
     }
 
     public function render()
     {
         return view('livewire.settings.profile')
-            ->layout('layouts.admin'); // ou le nom de votre layout
+            ->layout('layouts.admin');
     }
 }

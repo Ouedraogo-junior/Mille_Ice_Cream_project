@@ -9,7 +9,14 @@ use Illuminate\Support\Facades\Hash;
 class GestionCaissiers extends Component
 {
     public $caissiers;
-    public $user_id, $name, $email, $password;
+
+    // Champs du formulaire
+    public $user_id;
+    public $name;
+    public $email;
+    public $pseudo;
+    public $password;
+
     public $showForm = false;
 
     public function mount()
@@ -31,34 +38,63 @@ class GestionCaissiers extends Component
 
     public function editer($id)
     {
-        $user = User::find($id);
-        $this->user_id = $user->id;
-        $this->name = $user->name;
-        $this->email = $user->email;
-        $this->showForm = true;
+        $user = User::findOrFail($id);
+
+        $this->user_id   = $user->id;
+        $this->name      = $user->name;
+        $this->email     = $user->email;
+        $this->pseudo    = $user->pseudo;
+        $this->password  = ''; 
+        $this->showForm  = true;
     }
 
     public function sauvegarder()
-    {
-        $this->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users,email,'.$this->user_id,
-            'password' => $this->user_id ? 'nullable|min:4' : 'required|min:4'
-        ]);
+{
+    // Règles de validation
+    $rules = [
+        'name'     => 'required|string|max:255',
+        'pseudo'   => 'nullable|string|max:30|unique:users,pseudo,' . $this->user_id,
+        'email'    => 'nullable|email|max:255|unique:users,email,' . $this->user_id,
+        'password' => $this->user_id ? 'nullable|min:4' : 'required|min:4',
+    ];
 
-        User::updateOrCreate(['id' => $this->user_id], [
-            'name' => $this->name,
-            'email' => $this->email,
-            'password' => $this->password ? Hash::make($this->password) : null,
-            'role' => 'caissier'
-        ]);
+    $this->validate($rules);
 
-        $this->caissiers = User::where('role', 'caissier')->get();
-        $this->showForm = false;
+    // Au moins un identifiant doit être renseigné
+    if (empty($this->email) && empty($this->pseudo)) {
+        $this->addError('email', 'Vous devez renseigner soit l\'email, soit le pseudo.');
+        $this->addError('pseudo', 'Vous devez renseigner soit l\'email, soit le pseudo.');
+        return;
     }
+
+    // Préparer les données
+    $data = [
+        'name'  => $this->name,
+        'role'  => 'caissier',
+        'email' => !empty($this->email) ? $this->email : null,  // ← Important : NULL si vide
+        'pseudo' => !empty($this->pseudo) ? strtolower($this->pseudo) : null,  // ← Important : NULL si vide
+    ];
+
+    // Mot de passe uniquement si renseigné
+    if (!empty($this->password)) {
+        $data['password'] = Hash::make($this->password);
+    }
+
+    User::updateOrCreate(['id' => $this->user_id], $data);
+
+    $this->caissiers = User::where('role', 'caissier')->get();
+    $this->showForm = false;
+    $this->dispatch('toast', message: 'Caissier sauvegardé avec succès !', type: 'success');
+}
 
     private function resetForm()
     {
-        $this->reset(['user_id', 'name', 'email', 'password']);
+        $this->reset(['user_id', 'name', 'email', 'pseudo', 'password']);
+    }
+
+    public function annuler()
+    {
+        $this->showForm = false;
+        $this->resetForm();
     }
 }

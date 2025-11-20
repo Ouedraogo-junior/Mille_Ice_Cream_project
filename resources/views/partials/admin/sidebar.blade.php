@@ -136,6 +136,26 @@
             @endif
         </a>
 
+        <!-- Objectifs -->
+
+        <!-- Objectifs -->
+        <a href="{{ route('objectifs') }}"
+        class="group flex items-center gap-3 py-3 sm:py-3.5 px-3 sm:px-4 rounded-xl text-sm font-semibold transition-all duration-200
+        {{ request()->routeIs('objectifs') 
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
+                : 'text-gray-700 hover:bg-cyan-50 hover:text-cyan-700' }}">
+            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0
+                {{ request()->routeIs('objectifs')
+                    ? 'bg-white/20'
+                    : 'bg-orange-100 text-orange-600 group-hover:bg-orange-200' }}">
+                <i class="fas fa-bullseye"></i>
+            </div>
+            <span class="flex-1">Objectifs</span>
+            @if(request()->routeIs('objectifs'))
+                <i class="fas fa-chevron-right text-sm"></i>
+            @endif
+        </a>
+
         <!-- Séparateur -->
         <div class="py-2">
             <div class="border-t border-gray-200"></div>

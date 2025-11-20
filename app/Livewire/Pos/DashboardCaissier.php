@@ -9,11 +9,16 @@ use Livewire\Component;
 use Livewire\Attributes\Computed;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\Objectif;
 
 class DashboardCaissier extends Component
 {
     public string $periode = 'today'; // today, week, month
     public ?string $messageSucces = null;
+
+    // Propriétés pour la modale de détails de vente
+    public $venteSelectionnee = null;
+    public $showModal = false;
 
     /**
      * Statistiques du jour pour le caissier connecté
@@ -30,11 +35,20 @@ class DashboardCaissier extends Component
     /**
      * Afficher les détails d'une vente
      */
-public function afficherDetails($venteId)
-{
-    $this->venteSelectionnee = $venteId;
-    $this->showModal = true;
-}
+    public function afficherDetails($venteId)
+    {
+        $this->venteSelectionnee = Vente::with('details.produit')->find($venteId);
+        $this->showModal = true;
+    }
+
+    /**
+     * Fermer la modale
+     */
+    public function fermerModal()
+    {
+        $this->showModal = false;
+        $this->venteSelectionnee = null;
+    }
 
     /**
      * Statistiques de la semaine
@@ -123,61 +137,85 @@ public function afficherDetails($venteId)
      */
     #[Computed]
     public function ventesParHeure()
-{
-    $driver = DB::getDriverName();
+    {
+        $driver = DB::getDriverName();
 
-    // Expression heure selon le SGBD
-    $hourExpression = $driver === 'sqlite'
-        ? "strftime('%H', date_vente)"   // SQLite
-        : "HOUR(date_vente)";            // MySQL/PostgreSQL
+        // Expression heure selon le SGBD
+        $hourExpression = match ($driver) {
+            'sqlite' => "strftime('%H', date_vente)", // SQLite
+            'pgsql' => "to_char(date_vente, 'HH24')",  // PostgreSQL
+            default => "HOUR(date_vente)",              // MySQL
+        };
 
-    $ventes = Vente::where('user_id', auth()->id())
-        ->where('est_annulee', false)
-        ->whereDate('date_vente', today())
-        ->select(
-            DB::raw("$hourExpression as heure"),
-            DB::raw('COUNT(*) as nombre'),
-            DB::raw('SUM(total) as montant')
-        )
-        ->groupBy('heure')
-        ->orderBy('heure')
-        ->get();
+        $ventes = Vente::where('user_id', auth()->id())
+            ->where('est_annulee', false)
+            ->whereDate('date_vente', today())
+            ->select(
+                DB::raw("$hourExpression as heure"),
+                DB::raw('COUNT(*) as nombre'),
+                DB::raw('SUM(total) as montant')
+            )
+            ->groupBy('heure')
+            ->orderBy('heure')
+            ->get();
 
-    // Remplir les heures manquantes
-    $heures = collect(range(0, 23))->map(function($h) use ($ventes) {
-        $key = str_pad($h, 2, '0', STR_PAD_LEFT); // '00', '01', '02', ...
-        $vente = $ventes->firstWhere('heure', $key);
+        // Remplir les heures manquantes
+        $heures = collect(range(0, 23))->map(function($h) use ($ventes) {
+            $key = str_pad($h, 2, '0', STR_PAD_LEFT); // '00', '01', '02', ...
+            $vente = $ventes->firstWhere('heure', $key);
 
-        return [
-            'heure' => $key . 'h',
-            'nombre' => $vente ? $vente->nombre : 0,
-            'montant' => $vente ? $vente->montant : 0,
-        ];
-    });
+            return [
+                'heure' => $key . 'h',
+                'nombre' => $vente ? $vente->nombre : 0,
+                'montant' => $vente ? $vente->montant : 0,
+            ];
+        });
 
-    return $heures;
-}
+        return $heures;
+    }
 
 
     /**
      * Objectif du jour (peut être configuré)
      */
-    public function getObjectifJourProperty()
+   public function getObjectifQuotidienProperty()
+{
+    // On prend l'objectif journalier dont la date de début est aujourd'hui
+    // (c'est la convention la plus utilisée)
+    return Objectif::where('type', 'journalier')
+        ->whereDate('date_debut', Carbon::today())
+        ->first();
+}
+
+    public function getCaGlobalProperty()
     {
-        // Vous pouvez stocker cet objectif en config ou en BDD
-        return config('pos.objectif_journalier', 50000);
+        // Calcule le total de TOUTES les ventes du magasin aujourd'hui
+        return Vente::whereDate('date_vente', Carbon::today())->sum('total');
     }
 
     /**
-     * Progression vers l'objectif
+     * Pourcentage de l'objectif basé sur le CA du magasin (logique actuelle)
      */
-    public function getProgressionObjectifProperty()
-    {
-        $stats = $this->statistiquesJour;
-        return $this->objectifJour > 0 
-            ? min(100, ($stats['chiffre_affaires'] / $this->objectifJour) * 100)
-            : 0;
+    public function getPourcentageObjectifProperty()  // ← maintenant $this->pourcentageObjectif existe !
+{
+    if (!$this->objectifQuotidien || $this->objectifQuotidien->objectif <= 0) {
+        return 0;
     }
+    return min(100, ($this->caGlobal / $this->objectifQuotidien->objectif) * 100);
+}
+    
+    /**
+     * Pourcentage de l'objectif basé sur le CA personnel du caissier (Suggestion)
+     */
+    public function getPourcentageObjectifPersonnelProperty()
+    {
+        if (!$this->objectifQuotidien || $this->objectifQuotidien->objectif <= 0) {
+            return 0;
+        }
+        $caPersonnel = $this->statistiquesJour()['chiffre_affaires'] ?? 0;
+        return min(100, ($caPersonnel / $this->objectifQuotidien->objectif) * 100);
+    }
+
 
     /**
      * Changer de période
@@ -202,7 +240,7 @@ public function afficherDetails($venteId)
             $this->ventesParHeure
         );
         
-        $this->messageSucces = 'Dashboard mis à jour';
+        $this->messageSucces = 'Tableau de bord mis à jour';
     }
 
     /**

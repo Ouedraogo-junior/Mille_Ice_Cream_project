@@ -101,24 +101,24 @@ class Rapports extends Component
             ? (($this->chiffreAffaires - $caPrecedent) / $caPrecedent * 100)
             : 0;
 
-        /**
-         * 🔥 TOP PRODUITS (correction complète)
-         */
         $this->topProduits = VenteDetail::select(
-                'variants.nom',
-                DB::raw('SUM(vente_details.quantite) AS total_vendus'),
-                DB::raw('SUM(vente_details.prix_unitaire * vente_details.quantite) AS total_ca')
-            )
-            ->join('ventes', 'vente_details.vente_id', '=', 'ventes.id')
-            ->join('variants', 'vente_details.variant_id', '=', 'variants.id')
-            ->whereBetween('ventes.created_at', [
-                $this->dateDebut . ' 00:00:00',
-                $this->dateFin . ' 23:59:59'
-            ])
-            ->groupBy('variants.id', 'variants.nom')
-            ->orderByDesc('total_ca')
-            ->limit(10)
-            ->get();
+            'produit.nom as produit_nom',           // ← table "produit"
+            'variants.nom as variant_nom',
+            'variants.id as variant_id',
+            DB::raw('SUM(vente_details.quantite) AS total_vendus'),
+            DB::raw('SUM(vente_details.prix_unitaire * vente_details.quantite) AS total_ca')
+        )
+        ->join('ventes', 'vente_details.vente_id', '=', 'ventes.id')
+        ->join('variants', 'vente_details.variant_id', '=', 'variants.id')
+        ->join('produit', 'variants.produit_id', '=', 'produit.id')  // ← "produit" au singulier !
+        ->whereBetween('ventes.created_at', [
+            $this->dateDebut . ' 00:00:00',
+            $this->dateFin . ' 23:59:59'
+        ])
+        ->groupBy('variants.id', 'variants.nom', 'produit.nom')     // ← aussi ici
+        ->orderByDesc('total_ca')
+        ->limit(10)
+        ->get();
 
         /**
          * 🔥 VENTES PAR CATÉGORIE

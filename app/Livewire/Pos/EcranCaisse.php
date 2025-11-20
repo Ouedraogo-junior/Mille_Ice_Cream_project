@@ -10,6 +10,7 @@ use Livewire\Component;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\DB;
+use App\Events\StockAlerteEvent;
 
 class EcranCaisse extends Component
 {
@@ -275,8 +276,21 @@ class EcranCaisse extends Component
                 // Décrémenter le stock de la variante
                 $variant = \App\Models\Variant::find($item['variant_id'] ?? null);
                 if ($variant && $variant->stock !== null) {
-                    $variant->decrement('stock', $item['quantite']);
-                }
+    $ancienStock = $variant->stock + $item['quantite']; // stock avant vente
+    $variant->decrement('stock', $item['quantite']);
+
+    // Recharge la variante pour avoir le nouveau stock
+    $variant->refresh();
+
+    // Si on passe SOUS le seuil d'alerte pendant cette vente
+    if ($variant->seuil_alerte !== null 
+        && $ancienStock > $variant->seuil_alerte 
+        && $variant->stock <= $variant->seuil_alerte) {
+        
+        event(new StockAlerteEvent($variant));
+        // ou StockAlerteEvent::dispatch($variant);
+    }
+}
             }
 
             DB::commit();

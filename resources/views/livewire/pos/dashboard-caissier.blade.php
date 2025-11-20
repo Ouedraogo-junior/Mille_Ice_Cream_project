@@ -167,27 +167,67 @@
         </div>
 
         {{-- Objectif du jour (seulement pour aujourd'hui) --}}
-        @if($periode === 'today')
-        <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20 mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h3 class="text-xl font-bold text-white mb-1">Objectif du jour</h3>
-                    <p class="text-cyan-200 text-sm">{{ number_format($this->objectifJour, 0, ',', ' ') }} FCFA</p>
+        @if($periode === 'today' && $this->objectifQuotidien)
+        <div class="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-blue-600 rounded-3xl p-6 shadow-2xl mb-8 border border-white/20">
+            
+            {{-- Décoration d'arrière-plan --}}
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+            <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 bg-purple-500/30 rounded-full blur-2xl"></div>
+
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <h3 class="text-xl font-bold text-white">🚀 Objectif d'équipe</h3>
+                            <span class="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full border border-white/20">Global</span>
+                        </div>
+                        <p class="text-indigo-100 text-sm">
+                            Cible : <span class="font-bold text-white">{{ number_format($this->objectifQuotidien->objectif, 0, ',', ' ') }} FCFA</span>
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-4xl font-bold text-white tracking-tight">
+                            {{ number_format($this->pourcentageObjectif, 1) }}%
+                        </p>
+                    </div>
                 </div>
-                <div class="text-right">
-                    <p class="text-3xl font-bold text-white">{{ number_format($this->progressionObjectif, 1) }}%</p>
-                    <p class="text-cyan-200 text-sm">Atteint</p>
+
+                {{-- Barre de progression --}}
+                <div class="relative h-6 bg-black/20 rounded-full overflow-hidden mb-3 backdrop-blur-sm border border-white/10">
+                    {{-- La barre colorée --}}
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-400 to-cyan-300 transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(52,211,153,0.5)]"
+                         style="width: {{ min(100, $this->pourcentageObjectif) }}%">
+                         
+                         {{-- Effet de brillance (Shimmer) --}}
+                         <div class="absolute top-0 bottom-0 right-0 w-full bg-gradient-to-l from-white/40 to-transparent transform skew-x-12"></div>
+                    </div>
+                </div>
+
+                {{-- Stats en bas --}}
+                <div class="flex justify-between items-end text-sm text-indigo-100">
+                    <div>
+                        <span class="block text-xs opacity-80">Réalisé (Tous caissiers)</span>
+                        <span class="font-bold text-lg text-white">{{ number_format($this->caGlobal, 0, ',', ' ') }} F</span>
+                    </div>
+
+                    @if($this->caGlobal >= $this->objectifQuotidien->objectif)
+                        <div class="flex items-center gap-1 text-emerald-300 font-bold bg-emerald-900/30 px-3 py-1 rounded-lg border border-emerald-500/30">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            BRAVO ! Atteint
+                        </div>
+                    @else
+                        <div class="text-right">
+                            <span class="block text-xs opacity-80">Reste à faire</span>
+                            <span class="font-bold text-white">{{ number_format($this->objectifQuotidien->objectif - $this->caGlobal, 0, ',', ' ') }} F</span>
+                        </div>
+                    @endif
                 </div>
             </div>
-            <div class="relative h-6 bg-white/10 rounded-full overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-full transition-all duration-1000"
-                     style="width: {{ min(100, $this->progressionObjectif) }}%"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <span class="text-white text-xs font-bold drop-shadow-lg">
-                        {{ number_format($stats['chiffre_affaires'], 0, ',', ' ') }} / {{ number_format($this->objectifJour, 0, ',', ' ') }} F
-                    </span>
-                </div>
-            </div>
+        </div>
+        @elseif($periode === 'today')
+        {{-- État vide si l'admin n'a rien défini --}}
+        <div class="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 text-center">
+            <p class="text-cyan-200/60 italic">Pas d'objectif collectif défini pour aujourd'hui.</p>
         </div>
         @endif
 

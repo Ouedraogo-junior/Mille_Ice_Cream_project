@@ -95,18 +95,18 @@ body {
 
         <form method="POST" action="{{ route('login.store') }}" class="space-y-5">
             @csrf
-            <!-- Email -->
-            <div class="group">
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5" for="email">
-                    <i class="fas fa-envelope text-cyan-500 mr-2"></i> Adresse email
-                </label>
-                <div class="relative">
-                    <input type="email" name="email" id="email" required autofocus autocomplete="email" value="{{ old('email') }}"
-                           class="input-focus w-full px-5 py-3 pl-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-sm"
-                           placeholder="admin@millaicecream.com">
-                    <i class="fas fa-at absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                </div>
-            </div>
+            <!-- Email OU Pseudo -->
+<div class="group">
+    <label class="block text-sm font-semibold text-gray-700 mb-1.5" for="email">
+        <i class="fas fa-user text-cyan-500 mr-2"></i> Email ou Pseudo
+    </label>
+    <div class="relative">
+        <input type="text" name="email" id="email" required autofocus autocomplete="username" value="{{ old('email') }}"
+               class="input-focus w-full px-5 py-3 pl-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-sm"
+               placeholder="admin@millaicecream.com ou admin">
+        <i class="fas fa-at absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+    </div>
+</div>
 
             <!-- Mot de passe -->
             <div class="group">
