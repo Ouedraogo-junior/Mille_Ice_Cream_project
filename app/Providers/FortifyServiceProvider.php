@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -25,20 +27,48 @@ class FortifyServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      */
     public function boot(): void
-    {
-        $this->configureActions();
-        $this->configureViews();
-        $this->configureRateLimiting();
+{
+    $this->configureActions();
+    $this->configureViews();
+    $this->configureRateLimiting();
+
     // Redirection personnalisée après connexion
-        app()->singleton(
+    app()->singleton(
         \Laravel\Fortify\Contracts\LoginResponse::class,
         \App\Actions\Fortify\CustomLoginResponse::class
-        );
+    );
 
-        Fortify::registerView(function () {
+    // ✅ Authentification personnalisée avec email OU pseudo
+    Fortify::authenticateUsing(function (Request $request) {
+        $login = $request->input('email'); // Nom du champ dans le formulaire
+        $password = $request->input('password');
+
+        // Nettoyer la saisie
+        $login = trim($login);
+
+        // Chercher l'utilisateur par email OU pseudo
+        $user = null;
+        
+        if (filter_var($login, FILTER_VALIDATE_EMAIL)) {
+            // C'est un email
+            $user = User::where('email', $login)->first();
+        } else {
+            // C'est un pseudo
+            $user = User::where('pseudo', $login)->first();
+        }
+
+        // Vérifier que l'utilisateur existe, est actif et que le mot de passe est correct
+        if ($user && $user->is_active && Hash::check($password, $user->password)) {
+            return $user;
+        }
+
+        return null;
+    });
+
+    Fortify::registerView(function () {
         abort(404);
-        });
-    }
+    });
+}
 
     /**
      * Configure Fortify actions.

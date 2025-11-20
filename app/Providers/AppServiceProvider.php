@@ -79,5 +79,7 @@ class AppServiceProvider extends ServiceProvider
             // Un caissier ne peut voir que ses propres tickets
             return $user->id === $vente->user_id;
         });
+
     }
+
 }

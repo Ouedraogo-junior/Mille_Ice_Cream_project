@@ -34,12 +34,12 @@
                             <span>Entreprise</span>
                         </button>
                         
-                        <button wire:click="$set('section', 'notifications')" 
+                        {{-- <button wire:click="$set('section', 'notifications')" 
                                 class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left font-semibold transition-all
                                        {{ $section === 'notifications' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-bell"></i>
                             <span>Notifications</span>
-                        </button>
+                        </button> --}}
                         
                         <button wire:click="$set('section', 'securite')" 
                                 class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left font-semibold transition-all

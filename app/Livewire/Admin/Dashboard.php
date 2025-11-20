@@ -26,13 +26,13 @@ class Dashboard extends Component
         // Statistiques de base
         $this->totalProduits = Variant::where('active', true)->count();
         $this->caissiersActifs = User::where('role', 'caissier')->count();
-        $this->produitsEnRupture = Variant::where('stock', '<=', 5)->count();
+        $this->produitsEnRupture = Variant::where('seuil_alerte', '<=', 10)->count();
         $this->totalVariants = Variant::count();
         $this->totalCategories = Categorie::where('active', true)->count();
 
         // Produits en alerte de stock (pour affichage détaillé)
         $this->produitsEnAlerte = Variant::with('produit')
-            ->where('stock', '<=', 5)
+            ->where('seuil_alerte', '<=', 10)
             ->orderBy('stock', 'asc')
             ->limit(5)
             ->get();

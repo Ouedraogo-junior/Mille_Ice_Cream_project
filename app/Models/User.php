@@ -13,7 +13,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'notification_preferences'
+        'name', 'email', 'password', 'role', 'notification_preferences', 'pseudo',
     ];
 
     protected $hidden = [
@@ -46,10 +46,10 @@ class User extends Authenticatable
         $this->update(['notification_preferences' => $preferences]);
     }
 
-    // Relation avec les notifications
     public function notifications()
     {
-        return $this->hasMany(\App\Models\Notification::class)->latest();
+        return $this->morphMany(\Illuminate\Notifications\DatabaseNotification::class, 'notifiable')
+            ->orderBy('created_at', 'desc');
     }
 
     public function unreadNotificationsCount()
@@ -75,4 +75,17 @@ class User extends Authenticatable
     { 
         return $this->role === 'caissier'; 
     }
+
+    public function getEmailAttribute($value)
+{
+    // Si l'email est null, retourner null au lieu d'une chaîne vide
+    return $value;
+}
+
+// Méthode helper pour obtenir l'identifiant de connexion
+public function getLoginIdentifier(): string
+{
+    return $this->email ?? $this->pseudo ?? '';
+}
+    
 }

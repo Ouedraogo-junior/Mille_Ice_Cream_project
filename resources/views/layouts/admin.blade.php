@@ -244,9 +244,9 @@
                         </div>
 
                         <!-- ICÔNE CLOCHE NOTIFICATIONS -->
-                        <div class="flex">
-                            <livewire:admin.notification-admin />
-                        </div>
+                        {{-- <div class="flex">
+                            <livewire:admin.notification-admin wire:key="notification-bell-header" />
+                        </div> --}}
 
                         <!-- Infos utilisateur -->
                         <div class="flex items-center gap-2 sm:gap-4">
