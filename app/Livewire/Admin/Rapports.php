@@ -180,45 +180,109 @@ class Rapports extends Component
      * Exporter les rapports en PDF
      */
     public function exporterPDF()
-    {
-        try {
-            // Récupérer toutes les données nécessaires
-            $donnees = [
-                'dateDebut' => $this->dateDebut,
-                'dateFin' => $this->dateFin,
-                'chiffreAffaires' => $this->chiffreAffaires,
-                'nombreVentes' => $this->nombreVentes,
-                'panierMoyen' => $this->panierMoyen,
-                'produitsVendus' => $this->produitsVendus,
-                'evolutionCA' => $this->evolutionCA,
-                'topProduits' => $this->topProduits,
-                'ventesParCategorie' => $this->ventesParCategorie,
-                'performanceCaissiers' => $this->performanceCaissiers,
-                'evolutionVentes' => $this->evolutionVentes,
-                'dateGeneration' => Carbon::now()->format('d/m/Y H:i'),
-            ];
+{
+    try {
+        // Recharger les données
+        $this->chargerDonnees();
+        
+        // IMPORTANT : Convertir TOUTES les collections en tableaux
+        // Car DomPDF ne gère pas bien les collections Livewire
+        $donnees = [
+            'dateDebut' => $this->dateDebut,
+            'dateFin' => $this->dateFin,
+            'chiffreAffaires' => $this->chiffreAffaires,
+            'nombreVentes' => $this->nombreVentes,
+            'panierMoyen' => $this->panierMoyen,
+            'produitsVendus' => $this->produitsVendus,
+            'evolutionCA' => $this->evolutionCA,
+            'dateGeneration' => Carbon::now()->format('d/m/Y H:i'),
+            
+            // Convertir les collections en objets stdClass pour éviter les problèmes
+            'topProduits' => $this->topProduits->map(function($item) {
+                return (object)[
+                    'produit_nom' => $item->produit_nom ?? '',
+                    'variant_nom' => $item->variant_nom ?? '',
+                    'variant_id' => $item->variant_id ?? 0,
+                    'total_vendus' => $item->total_vendus ?? 0,
+                    'total_ca' => $item->total_ca ?? 0,
+                ];
+            }),
+            
+            'ventesParCategorie' => $this->ventesParCategorie->map(function($item) {
+                return (object)[
+                    'nom' => $item->nom ?? '',
+                    'couleur' => $item->couleur ?? 'gray',
+                    'total_ca' => $item->total_ca ?? 0,
+                ];
+            }),
+            
+            'performanceCaissiers' => $this->performanceCaissiers->map(function($item) {
+                return (object)[
+                    'name' => $item->name ?? '',
+                    'nombre_ventes' => $item->nombre_ventes ?? 0,
+                    'total_ca' => $item->total_ca ?? 0,
+                ];
+            }),
+            
+            'evolutionVentes' => $this->evolutionVentes->map(function($item) {
+                return (object)[
+                    'date' => $item->date ?? now(),
+                    'nombre' => $item->nombre ?? 0,
+                    'total' => $item->total ?? 0,
+                ];
+            }),
+        ];
 
-            // Générer le PDF
-            $pdf = Pdf::loadView('admin.rapports-pdf', $donnees)
-                ->setPaper('a4', 'portrait')
-                ->setOptions([
-                    'isHtml5ParserEnabled' => true,
-                    'isRemoteEnabled' => true,
-                    'defaultFont' => 'sans-serif'
-                ]);
+        // Log pour vérifier
+        \Log::info('PDF - Top Produits count: ' . $donnees['topProduits']->count());
+        \Log::info('PDF - Catégories count: ' . $donnees['ventesParCategorie']->count());
+        
+        // Générer le PDF
+        $pdf = Pdf::loadView('admin.rapports-pdf', $donnees)
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+                'defaultFont' => 'sans-serif',
+            ]);
 
-            $nomFichier = 'rapport_ventes_' . 
-                Carbon::parse($this->dateDebut)->format('Y-m-d') . '_' . 
-                Carbon::parse($this->dateFin)->format('Y-m-d') . '.pdf';
+        $nomFichier = 'rapport_ventes_' . 
+            Carbon::parse($this->dateDebut)->format('Y-m-d') . '_' . 
+            Carbon::parse($this->dateFin)->format('Y-m-d') . '.pdf';
 
-            return response()->streamDownload(function() use ($pdf) {
-                echo $pdf->output();
-            }, $nomFichier);
+        return response()->streamDownload(function() use ($pdf) {
+            echo $pdf->output();
+        }, $nomFichier);
 
-        } catch (\Exception $e) {
-            session()->flash('error', 'Erreur lors de l\'export PDF : ' . $e->getMessage());
-        }
+    } catch (\Exception $e) {
+        \Log::error('Erreur export PDF: ' . $e->getMessage());
+        \Log::error($e->getTraceAsString());
+        
+        session()->flash('error', 'Erreur lors de l\'export PDF : ' . $e->getMessage());
+        return null;
     }
+}
+
+public function testerDonnees()
+{
+    $this->chargerDonnees();
+    
+    $info = [
+        'dateDebut' => $this->dateDebut,
+        'dateFin' => $this->dateFin,
+        'nombreVentes' => $this->nombreVentes,
+        'chiffreAffaires' => $this->chiffreAffaires,
+        'topProduits_count' => $this->topProduits ? $this->topProduits->count() : 0,
+        'topProduits_data' => $this->topProduits ? $this->topProduits->take(2)->toArray() : [],
+        'categories_count' => $this->ventesParCategorie ? $this->ventesParCategorie->count() : 0,
+        'caissiers_count' => $this->performanceCaissiers ? $this->performanceCaissiers->count() : 0,
+        'evolution_count' => $this->evolutionVentes ? $this->evolutionVentes->count() : 0,
+    ];
+    
+    \Log::info('=== TEST DONNÉES RAPPORTS ===', $info);
+    
+    session()->flash('success', 'Données testées ! Vérifiez storage/logs/laravel.log');
+}
 
     /**
      * Exporter les rapports en Excel

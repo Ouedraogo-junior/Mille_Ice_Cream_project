@@ -265,7 +265,7 @@
         <!-- Top 10 Produits -->
         <div class="section">
             <h2 class="section-title">🏆 Top 10 des Produits</h2>
-            @if($topProduits->count() > 0)
+            @if(isset($topProduits) && $topProduits && $topProduits->count() > 0)
                 <table>
                     <thead>
                         <tr>
@@ -296,7 +296,7 @@
         <!-- Ventes par catégorie -->
         <div class="section">
             <h2 class="section-title">📦 Ventes par Catégorie</h2>
-            @if($ventesParCategorie->count() > 0)
+            @if(isset($ventesParCategorie) && $ventesParCategorie && $ventesParCategorie->count() > 0)
                 <table>
                     <thead>
                         <tr>
@@ -323,7 +323,7 @@
         <!-- Performance des caissiers -->
         <div class="section">
             <h2 class="section-title">👥 Performance des Caissiers</h2>
-            @if($performanceCaissiers->count() > 0)
+            @if(isset($performanceCaissiers) && $performanceCaissiers && $performanceCaissiers->count() > 0)
                 @foreach($performanceCaissiers as $caissier)
                 <div class="caissier-card">
                     <div class="caissier-name">{{ $caissier->name }}</div>
@@ -339,7 +339,7 @@
         <!-- Évolution des ventes -->
         <div class="section">
             <h2 class="section-title">📊 Évolution des Ventes</h2>
-            @if($evolutionVentes->count() > 0)
+            @if(isset($evolutionVentes) && $evolutionVentes && $evolutionVentes->count() > 0)
                 <table>
                     <thead>
                         <tr>

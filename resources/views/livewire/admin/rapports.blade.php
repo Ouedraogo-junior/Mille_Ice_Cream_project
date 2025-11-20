@@ -10,6 +10,11 @@
                 <p class="text-gray-500 mt-2">Analysez les performances de votre glacier</p>
             </div>
             <div class="flex gap-3">
+                <button wire:click="testerDonnees" 
+            class="flex items-center gap-2 px-4 py-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 font-semibold rounded-xl transition">
+        <i class="fas fa-bug"></i>
+        <span>Tester</span>
+    </button>
                 <button wire:click="exporterPDF" 
                         class="flex items-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-xl transition">
                     <i class="fas fa-file-pdf"></i>
