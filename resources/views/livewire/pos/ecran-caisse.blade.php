@@ -158,129 +158,229 @@
             <div class="lg:col-span-2 space-y-6">
                 
                 {{-- Filtres par catégorie avec effet moderne et scroll --}}
-                <div class="relative group/scroll">
-                    {{-- Bouton scroll gauche --}}
-                    <button onclick="scrollCategories('left')" 
-                            id="scroll-left"
-                            class="hidden absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-lg items-center justify-center transition-all transform hover:scale-110 active:scale-95 group-hover/scroll:flex">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/>
-                        </svg>
-                    </button>
-                    
-                    {{-- Conteneur des catégories scrollable --}}
-                    <div id="categories-container" class="flex gap-3 overflow-x-auto pb-2 scroll-smooth categories-scroll px-12">
-                        <button wire:click="filtrerCategorie(null)" 
-                                class="group relative px-6 py-3.5 rounded-xl font-semibold whitespace-nowrap transition-all duration-300 transform hover:scale-105 {{ $categorieSelectionnee === null ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50' : 'bg-white/10 backdrop-blur-sm text-purple-200 hover:bg-white/20 border border-white/20' }}">
-                            <span class="flex items-center gap-2">
-                                <span class="text-xl">🍨</span>
-                                Tous
-                            </span>
-                            @if($categorieSelectionnee === null)
-                                <div class="absolute inset-0 rounded-xl bg-white opacity-20 blur-xl"></div>
+                {{-- Filtres par catégorie avec icônes --}}
+<div class="relative group/scroll">
+    {{-- Bouton scroll gauche --}}
+    <button onclick="scrollCategories('left')" 
+            id="scroll-left"
+            class="hidden absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-lg items-center justify-center transition-all transform hover:scale-110 active:scale-95 group-hover/scroll:flex">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+    
+    {{-- Conteneur des catégories scrollable --}}
+    <div id="categories-container" class="flex gap-3 overflow-x-auto pb-2 scroll-smooth categories-scroll px-12">
+        {{-- Bouton "Tous" --}}
+        <button wire:click="filtrerCategorie(null)" 
+                class="group relative px-6 py-3.5 rounded-xl font-semibold whitespace-nowrap transition-all duration-300 transform hover:scale-105 {{ $categorieSelectionnee === null ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50' : 'bg-white/10 backdrop-blur-sm text-purple-200 hover:bg-white/20 border border-white/20' }}">
+            <span class="flex items-center gap-2">
+                <span class="text-xl">🍨</span>
+                Tous
+            </span>
+            @if($categorieSelectionnee === null)
+                <div class="absolute inset-0 rounded-xl bg-white opacity-20 blur-xl"></div>
+            @endif
+        </button>
+
+        {{-- Catégories avec icônes --}}
+        @foreach($this->categories as $categorie)
+            <button wire:click="filtrerCategorie({{ $categorie->id }})" 
+                    class="group relative px-6 py-3.5 rounded-xl font-semibold whitespace-nowrap transition-all duration-300 transform hover:scale-105 {{ $categorieSelectionnee === $categorie->id ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50' : 'bg-white/10 backdrop-blur-sm text-purple-200 hover:bg-white/20 border border-white/20' }}">
+                <span class="flex items-center gap-2">
+                    {{-- Afficher l'icône de la catégorie ou icône par défaut --}}
+                    @if($categorie->icone)
+                        @if(str_starts_with($categorie->icone, 'http') || str_starts_with($categorie->icone, '/'))
+                            {{-- Si c'est une URL ou un chemin d'image --}}
+                            <img src="{{ $categorie->icone }}" 
+                                 alt="{{ $categorie->nom }}" 
+                                 class="w-5 h-5 object-contain"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                            <span class="text-xl hidden">🏷️</span>
+                        @else
+                            {{-- Si c'est un emoji ou texte --}}
+                            <span class="text-xl">{{ $categorie->icone }}</span>
+                        @endif
+                    @else
+                        {{-- Icône par défaut selon la catégorie --}}
+                        <span class="text-xl">
+                            @switch(strtolower($categorie->nom))
+                                @case('glace')
+                                @case('glaces')
+                                    🍦
+                                    @break
+                                @case('boisson')
+                                @case('boissons')
+                                    🥤
+                                    @break
+                                @case('dessert')
+                                @case('desserts')
+                                    🍰
+                                    @break
+                                @case('snack')
+                                @case('snacks')
+                                    🍿
+                                    @break
+                                @default
+                                    🏷️
+                            @endswitch
+                        </span>
+                    @endif
+                    {{ $categorie->nom }}
+                </span>
+                @if($categorieSelectionnee === $categorie->id)
+                    <div class="absolute inset-0 rounded-xl bg-white opacity-20 blur-xl"></div>
+                @endif
+            </button>
+        @endforeach
+    </div>
+    
+    {{-- Bouton scroll droite --}}
+    <button onclick="scrollCategories('right')" 
+            id="scroll-right"
+            class="hidden absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-lg items-center justify-center transition-all transform hover:scale-110 active:scale-95 group-hover/scroll:flex">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/>
+        </svg>
+    </button>
+    
+    {{-- Indicateurs de gradient aux extrémités --}}
+    <div class="absolute left-0 top-0 bottom-2 w-12 bg-gradient-to-r from-slate-900 to-transparent pointer-events-none"></div>
+    <div class="absolute right-0 top-0 bottom-2 w-12 bg-gradient-to-l from-slate-900 to-transparent pointer-events-none"></div>
+</div>
+
+{{-- Grille de produits avec images --}}
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 mt-6">
+    @forelse($this->produits as $produit)
+        @php $variant = $produit->variants->first(); @endphp
+        <button wire:click="ajouterAuPanier({{ $produit->id }})"
+                wire:loading.attr="disabled"
+                wire:target="ajouterAuPanier({{ $produit->id }})"
+                class="group relative bg-white/10 backdrop-blur-md rounded-2xl p-5 hover:bg-white/20 transition-all duration-300 border border-white/20 hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/20 transform hover:-translate-y-2 {{ (optional($variant)->stock !== null && optional($variant)->stock <= 0) ? 'opacity-50 cursor-not-allowed' : '' }}">
+            
+            {{-- Effet de brillance au survol --}}
+            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            {{-- Badge stock --}}
+            @if(optional($variant)->stock !== null && optional($variant)->stock > 0 && optional($variant)->stock <= 5)
+                <span class="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 animate-pulse">
+                    {{ $variant->stock }} restants
+                </span>
+            @elseif(optional($variant)->stock !== null && optional($variant)->stock <= 0)
+                <span class="absolute top-3 right-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
+                    Épuisé
+                </span>
+            @endif
+
+            {{-- Image produit avec gestion d'erreur --}}
+            <div class="relative aspect-square bg-gradient-to-br from-purple-400 via-pink-400 to-purple-500 rounded-xl mb-4 flex items-center justify-center text-5xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-shadow duration-300">
+                @if($produit->image)
+                    <img src="{{ asset('storage/' . $produit->image) }}" 
+                         alt="{{ $produit->nom }}" 
+                         class="w-full h-full object-cover rounded-xl transform group-hover:scale-110 transition-transform duration-500"
+                         onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    {{-- Image par défaut si erreur de chargement --}}
+                    <div class="hidden w-full h-full items-center justify-center transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                        <span class="text-6xl">
+                            @if($produit->categorie)
+                                @switch(strtolower($produit->categorie->nom))
+                                    @case('glace')
+                                    @case('glaces')
+                                        🍦
+                                        @break
+                                    @case('boisson')
+                                    @case('boissons')
+                                        🥤
+                                        @break
+                                    @case('dessert')
+                                    @case('desserts')
+                                        🍰
+                                        @break
+                                    @case('snack')
+                                    @case('snacks')
+                                        🍿
+                                        @break
+                                    @default
+                                        🍽️
+                                @endswitch
+                            @else
+                                🍽️
                             @endif
-                        </button>
-                        @foreach($this->categories as $categorie)
-                            <button wire:click="filtrerCategorie({{ $categorie->id }})" 
-                                    class="group relative px-6 py-3.5 rounded-xl font-semibold whitespace-nowrap transition-all duration-300 transform hover:scale-105 {{ $categorieSelectionnee === $categorie->id ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50' : 'bg-white/10 backdrop-blur-sm text-purple-200 hover:bg-white/20 border border-white/20' }}">
-                                <span>{{ $categorie->nom }}</span>
-                                @if($categorieSelectionnee === $categorie->id)
-                                    <div class="absolute inset-0 rounded-xl bg-white opacity-20 blur-xl"></div>
-                                @endif
-                            </button>
-                        @endforeach
+                        </span>
                     </div>
-                    
-                    {{-- Bouton scroll droite --}}
-                    <button onclick="scrollCategories('right')" 
-                            id="scroll-right"
-                            class="hidden absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-lg items-center justify-center transition-all transform hover:scale-110 active:scale-95 group-hover/scroll:flex">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </button>
-                    
-                    {{-- Indicateurs de gradient aux extrémités --}}
-                    <div class="absolute left-0 top-0 bottom-2 w-12 bg-gradient-to-r from-slate-900 to-transparent pointer-events-none"></div>
-                    <div class="absolute right-0 top-0 bottom-2 w-12 bg-gradient-to-l from-slate-900 to-transparent pointer-events-none"></div>
+                @else
+                    {{-- Pas d'image : afficher emoji par défaut --}}
+                    <span class="transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500 text-6xl">
+                        @if($produit->categorie)
+                            @switch(strtolower($produit->categorie->nom))
+                                @case('glace')
+                                @case('glaces')
+                                    🍦
+                                    @break
+                                @case('boisson')
+                                @case('boissons')
+                                    🥤
+                                    @break
+                                @case('dessert')
+                                @case('desserts')
+                                    🍰
+                                    @break
+                                @case('snack')
+                                @case('snacks')
+                                    🍿
+                                    @break
+                                @default
+                                    🍽️
+                            @endswitch
+                        @else
+                            🍽️
+                        @endif
+                    </span>
+                @endif
+                <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+
+            {{-- Infos produit --}}
+            <div class="relative z-10">
+                <h3 class="font-bold text-base text-white mb-2 group-hover:text-purple-300 transition line-clamp-2">{{ $produit->nom }}</h3>
+                <div class="flex items-center justify-between">
+                    <p class="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">{{ number_format(optional($variant)->prix ?? 0, 0, ',', ' ') }}</p>
+                    <span class="text-xs text-purple-300 font-semibold">FCFA</span>
                 </div>
+            </div>
 
-                {{-- Grille de produits moderne --}}
-                <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
-                    @forelse($this->produits as $produit)
-                        @php $variant = $produit->variants->first(); @endphp
-                        <button wire:click="ajouterAuPanier({{ $produit->id }})"
-                                wire:loading.attr="disabled"
-                                wire:target="ajouterAuPanier({{ $produit->id }})"
-                                class="group relative bg-white/10 backdrop-blur-md rounded-2xl p-5 hover:bg-white/20 transition-all duration-300 border border-white/20 hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/20 transform hover:-translate-y-2 {{ (optional($variant)->stock !== null && optional($variant)->stock <= 0) ? 'opacity-50 cursor-not-allowed' : '' }}">
-                            
-                            {{-- Effet de brillance au survol --}}
-                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                            
-                            {{-- Badge stock --}}
-                            @if(optional($variant)->stock !== null && optional($variant)->stock > 0 && optional($variant)->stock <= 5)
-                                <span class="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 animate-pulse">
-                                    {{ $variant->stock }} restants
-                                </span>
-                            @elseif(optional($variant)->stock !== null && optional($variant)->stock <= 0)
-                                <span class="absolute top-3 right-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
-                                    Épuisé
-                                </span>
-                            @endif
-
-                            {{-- Image produit avec effet --}}
-                            <div class="relative aspect-square bg-gradient-to-br from-purple-400 via-pink-400 to-purple-500 rounded-xl mb-4 flex items-center justify-center text-5xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-shadow duration-300">
-                                @if($produit->image)
-                                    <img src="{{ asset('storage/' . $produit->image) }}" 
-                                         alt="{{ $produit->nom }}" 
-                                         class="w-full h-full object-cover rounded-xl transform group-hover:scale-110 transition-transform duration-500">
-                                @else
-                                    <span class="transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">🍦</span>
-                                @endif
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            </div>
-
-                            {{-- Infos produit --}}
-                            <div class="relative z-10">
-                                <h3 class="font-bold text-base text-white mb-2 group-hover:text-purple-300 transition line-clamp-2">{{ $produit->nom }}</h3>
-                                <div class="flex items-center justify-between">
-                                    <p class="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">{{ number_format(optional($variant)->prix ?? 0, 0, ',', ' ') }}</p>
-                                    <span class="text-xs text-purple-300 font-semibold">FCFA</span>
-                                </div>
-                            </div>
-
-                            {{-- Loading indicator moderne --}}
-                            <div wire:loading wire:target="ajouterAuPanier({{ $produit->id }})" 
-                                 class="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
-                                <div class="relative">
-                                    <div class="w-12 h-12 border-4 border-purple-400/30 border-t-purple-400 rounded-full animate-spin"></div>
-                                    <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-pink-400 rounded-full animate-spin" style="animation-duration: 1.5s; animation-direction: reverse;"></div>
-                                </div>
-                            </div>
-
-                            {{-- Bouton d'ajout qui apparaît au survol --}}
-                            <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                                <div class="bg-gradient-to-r from-emerald-500 to-green-600 p-2 rounded-lg shadow-lg">
-                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </button>
-                    @empty
-                        <div class="col-span-full text-center py-20">
-                            <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-12 border border-white/10">
-                                <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full flex items-center justify-center">
-                                    <svg class="w-12 h-12 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 21a9 9 0 100-18 9 9 0 000 18z"/>
-                                    </svg>
-                                </div>
-                                <p class="text-2xl font-bold text-purple-200 mb-2">Aucun produit trouvé</p>
-                                <p class="text-purple-300">Essayez de modifier vos critères de recherche</p>
-                            </div>
-                        </div>
-                    @endforelse
+            {{-- Loading indicator --}}
+            <div wire:loading wire:target="ajouterAuPanier({{ $produit->id }})" 
+                 class="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
+                <div class="relative">
+                    <div class="w-12 h-12 border-4 border-purple-400/30 border-t-purple-400 rounded-full animate-spin"></div>
+                    <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-pink-400 rounded-full animate-spin" style="animation-duration: 1.5s; animation-direction: reverse;"></div>
                 </div>
+            </div>
+
+            {{-- Bouton d'ajout au survol --}}
+            <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                <div class="bg-gradient-to-r from-emerald-500 to-green-600 p-2 rounded-lg shadow-lg">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg>
+                </div>
+            </div>
+        </button>
+    @empty
+        <div class="col-span-full text-center py-20">
+            <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-12 border border-white/10">
+                <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full flex items-center justify-center">
+                    <svg class="w-12 h-12 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 21a9 9 0 100-18 9 9 0 000 18z"/>
+                    </svg>
+                </div>
+                <p class="text-2xl font-bold text-purple-200 mb-2">Aucun produit trouvé</p>
+                <p class="text-purple-300">Essayez de modifier vos critères de recherche</p>
+            </div>
+        </div>
+    @endforelse
+</div>
             </div>
 
             {{-- SECTION PANIER --}}
