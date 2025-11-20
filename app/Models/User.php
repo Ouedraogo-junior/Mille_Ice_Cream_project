@@ -13,7 +13,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'notification_preferences', 'pseudo',
+        'name', 'email', 'password', 'role', 'notification_preferences', 'pseudo', 'is_super_admin',
     ];
 
     protected $hidden = [
@@ -27,6 +27,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'notification_preferences' => 'array', // ← Stocké en JSON dans la BDD
+            'is_super_admin' => 'boolean',
         ];
     }
 
@@ -64,6 +65,11 @@ class User extends Authenticatable
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super_admin === true;
     }
 
     public function isAdmin()
