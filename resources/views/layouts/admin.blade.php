@@ -309,7 +309,7 @@
         });
 
         // Animation d'écriture du nom de l'entreprise
-        const brandText = "Milla Ice Cream";
+        const brandText = "Mila Ice Cream";
         const brandElement = document.getElementById('brandName');
         const cursor = document.getElementById('cursor');
         const brandContainer = document.getElementById('brandContainer');

@@ -23,7 +23,7 @@
                          class="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-xl">
                 @elseif(file_exists(public_path('images/logo.jpeg')))
                     <img src="{{ asset('images/logo.jpeg') }}" 
-                         alt="Mille Ice Cream Logo" 
+                         alt="Mila Ice Cream Logo" 
                          class="w-16 h-16 sm:w-20 sm:h-20 object-contain">
                 @else
                     {{-- Logo par défaut avec icône --}}
@@ -33,7 +33,7 @@
             
             <!-- Nom de l'entreprise -->
             <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-wide drop-shadow-lg text-center">
-                {{ \App\Models\Setting::get('nom_entreprise', 'Mille Ice Cream') }}
+                {{ \App\Models\Setting::get('nom_entreprise', 'Mila Ice Cream') }}
             </h1>
             <div class="mt-2 sm:mt-3 px-3 sm:px-4 py-1 sm:py-1.5 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
                 <p class="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-2">

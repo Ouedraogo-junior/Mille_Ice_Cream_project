@@ -153,7 +153,7 @@
                         </label>
                         <input type="email" 
                                wire:model="email" 
-                               placeholder="caissier@milleicecream.com" 
+                               placeholder="caissier@milaicecream.com" 
                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                         @error('email')
                             <p class="text-red-500 text-sm mt-2">{{ $message }}</p>

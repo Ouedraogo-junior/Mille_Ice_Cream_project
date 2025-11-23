@@ -440,7 +440,7 @@
                     Développé avec <i class="fas fa-heart" style="color: #f43f5e;"></i> au Burkina Faso
                 </p>
                 <p style="margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.6;">
-                    Developpé par <a href="josi1st.vercel.app" target="_blank" style="color: #10b981; text-decoration: underline;">Josias DJIOLGOU</a>
+                    Developpé par <a href="https://josi1st.vercel.app/" target="_blank" style="color: #10b981; text-decoration: underline;">Josias DJIOLGOU</a>
                     & <a href="https://github.com/Ouedraogo-junior/" target="_blank" style="color: #10b981; text-decoration: underline;">Omar OUEDRAOGO</a>
                 </p>
             </div>
