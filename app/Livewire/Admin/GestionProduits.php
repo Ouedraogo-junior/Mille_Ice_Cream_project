@@ -30,6 +30,8 @@ class GestionProduits extends Component
     public $variants = [];
     public $showForm = false;
 
+    protected $listeners = ['refreshComponent' => '$refresh'];
+
     public function render()
     {
         $produits = Produit::with(['categorie', 'variants'])
@@ -50,7 +52,12 @@ class GestionProduits extends Component
     {
         $this->resetForm();
         $this->image = null;
-        $this->variants = [['nom' => 'Standard', 'prix' => '', 'stock' => 999]];
+        $this->variants = [[
+            'nom' => 'Standard', 
+            'prix' => '', 
+            'stock' => '', // Vide par défaut = stock illimité
+            'seuil_alerte' => ''
+        ]];
         $this->showForm = true;
     }
 
@@ -65,14 +72,25 @@ class GestionProduits extends Component
             'id' => $v->id,
             'nom' => $v->nom,
             'prix' => $v->prix,
-            'stock' => $v->stock
-        ])->toArray() ?: [['nom' => '', 'prix' => '', 'stock' => 999]];
+            'stock' => $v->gerer_stock ? $v->stock : '', // Vide si non géré
+            'seuil_alerte' => $v->gerer_stock ? $v->seuil_alerte : ''
+        ])->toArray() ?: [[
+            'nom' => '', 
+            'prix' => '', 
+            'stock' => '',
+            'seuil_alerte' => ''
+        ]];
         $this->showForm = true;
     }
 
     public function ajouterVariant()
     {
-        $this->variants[] = ['nom' => '', 'prix' => '', 'stock' => 999];
+        $this->variants[] = [
+            'nom' => '', 
+            'prix' => '', 
+            'stock' => '',
+            'seuil_alerte' => ''
+        ];
     }
 
     public function supprimerVariant($index)
@@ -86,13 +104,24 @@ class GestionProduits extends Component
 
     public function sauvegarder()
     {
-        $this->validate([
+        // Validation de base
+        $rules = [
             'nom' => 'required|string|max:255',
             'categorie_id' => 'required|exists:categorie,id',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'variants.*.nom' => 'required|string',
-            'variants.*.prix' => 'required|numeric|min:100'
-        ]);
+            'variants.*.prix' => 'required|numeric|min:100',
+        ];
+
+        // Validation conditionnelle : si stock rempli, seuil aussi
+        foreach ($this->variants as $index => $variant) {
+            if (!empty($variant['stock']) && $variant['stock'] !== '') {
+                $rules["variants.{$index}.stock"] = 'required|integer|min:0';
+                $rules["variants.{$index}.seuil_alerte"] = 'required|integer|min:0';
+            }
+        }
+
+        $this->validate($rules);
 
         $imagePath = null;
         if ($this->image) {
@@ -103,33 +132,36 @@ class GestionProduits extends Component
             'nom' => $this->nom,
             'categorie_id' => $this->categorie_id,
             'image' => $imagePath ?? ($this->produit_id ? Produit::find($this->produit_id)->image : null),
-            // 'active' => true
         ]);
 
         foreach ($this->variants as $variant) {
+            // Si stock est vide ou null = stock non géré (illimité)
+            $stockRempli = !empty($variant['stock']) && $variant['stock'] !== '';
+            
+            $dataVariant = [
+                'nom' => $variant['nom'],
+                'prix' => $variant['prix'],
+                'gerer_stock' => $stockRempli,
+                'stock' => $stockRempli ? (int)$variant['stock'] : 999,
+                'seuil_alerte' => $stockRempli ? (int)($variant['seuil_alerte'] ?? 10) : 0
+            ];
+
             if (isset($variant['id'])) {
-                \App\Models\Variant::find($variant['id'])->update([
-                    'nom' => $variant['nom'],
-                    'prix' => $variant['prix'],
-                    'stock' => $variant['stock'] ?? 999
-                ]);
+                \App\Models\Variant::find($variant['id'])->update($dataVariant);
             } else {
-                $produit->variants()->create([
-                    'nom' => $variant['nom'],
-                    'prix' => $variant['prix'],
-                    'stock' => $variant['stock'] ?? 999
-                ]);
+                $produit->variants()->create($dataVariant);
             }
         }
 
         $this->showForm = false;
         $this->resetForm();
         $this->dispatch('toast', ['type' => 'success', 'message' => 'Produit sauvegardé avec succès !']);
-
-        $this->dispatch('$refresh');
+        
+        // Force le rechargement complet
+        $this->reset(['search', 'categorie_filter']);
+        $this->resetPage();
     }
 
-    // Méthode pour ouvrir le modal de confirmation de suppression
     public function confirmDelete($id)
     {
         $produit = Produit::findOrFail($id);
@@ -139,28 +171,22 @@ class GestionProduits extends Component
         $this->showDeleteModal = true;
     }
 
-    // Méthode de suppression effective
     public function supprimer($id)
     {
         $produit = Produit::with('variants')->findOrFail($id);
 
-        // Supprime l'image du produit si elle existe
         if ($produit->image) {
             \Storage::disk('public')->delete($produit->image);
         }
 
-        // Supprime toutes les variantes associées
         foreach ($produit->variants as $variant) {
             $variant->delete();
         }
 
-        // Supprime le produit
         $produit->delete();
 
-        // Ferme le modal
         $this->showDeleteModal = false;
         
-        // Réinitialise les données de suppression
         $this->produitToDelete = null;
         $this->produitNomToDelete = '';
         $this->produitImageToDelete = '';
@@ -170,7 +196,7 @@ class GestionProduits extends Component
             'message' => 'Produit supprimé avec succès !'
         ]);
 
-        $this->dispatch('$refresh');
+        $this->resetPage();
     }
 
     private function resetForm()

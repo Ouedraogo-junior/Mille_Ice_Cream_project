@@ -21,7 +21,6 @@
                     <i class="fas fa-image text-cyan-500 mr-2"></i>Photo du produit
                 </label>
                 <div class="flex flex-col items-center">
-                    {{-- Logique d'affichage de l'image (copiée de l'original) --}}
                     @if($image)
                         <img src="{{ $image->temporaryUrl() }}"
                              class="w-64 h-64 object-cover rounded-2xl shadow-lg border-4 border-cyan-100 mb-4">
@@ -68,7 +67,6 @@
                     <select wire:model="categorie_id"
                             class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
                         <option value="">Choisir une catégorie</option>
-                        {{-- La variable $categories est passée implicitement --}}
                         @foreach($categories as $c)
                             @if($c->active || $c->id == $categorie_id)
                                 <option value="{{ $c->id }}">
@@ -87,57 +85,135 @@
                         Variantes (tailles, formats)
                     </h3>
                     <button wire:click="ajouterVariant"
+                            type="button"
                             class="flex items-center gap-2 px-4 py-2 bg-cyan-100 hover:bg-cyan-200 text-cyan-700 font-semibold rounded-lg transition">
                         <i class="fas fa-plus"></i>
                         Ajouter
                     </button>
                 </div>
 
+                {{-- Info explicative --}}
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded">
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
+                        <div class="text-sm text-blue-800">
+                            <p class="font-semibold mb-1">💡 Gestion du stock simplifiée :</p>
+                            <ul class="list-disc list-inside space-y-1 ml-2">
+                                <li><strong>Laissez vide</strong> le stock → Stock illimité (glaces de machine)</li>
+                                <li><strong>Remplissez</strong> le stock → Gestion avec alertes (produits emballés)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="space-y-4">
-                    {{-- Logique de la boucle de variantes (copiée de l'original) --}}
                     @foreach($variants as $index => $variant)
-                        <div class="bg-gradient-to-r from-gray-50 to-cyan-50 rounded-xl p-5 border border-gray-200">
-                            <div class="grid grid-cols-12 gap-4">
-                                <div class="col-span-12 md:col-span-4">
-                                    <label class="text-xs font-semibold text-gray-600 mb-1 block">Nom</label>
+                        <div class="bg-gradient-to-r from-gray-50 to-cyan-50 rounded-xl p-5 border-2 border-gray-200">
+                            {{-- En-tête de la variante --}}
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-gray-700 flex items-center gap-2">
+                                    <i class="fas fa-layer-group text-cyan-500"></i>
+                                    Variante {{ $index + 1 }}
+                                </h4>
+                                @if(count($variants) > 1)
+                                    <button wire:click="supprimerVariant({{ $index }})"
+                                            type="button"
+                                            class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-semibold text-sm transition">
+                                        <i class="fas fa-trash mr-1"></i>Supprimer
+                                    </button>
+                                @endif
+                            </div>
+
+                            {{-- Nom et Prix --}}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="text-xs font-semibold text-gray-600 mb-1 block">
+                                        <i class="fas fa-tag text-gray-400 mr-1"></i>Nom de la variante
+                                    </label>
                                     <input type="text"
                                            wire:model="variants.{{ $index }}.nom"
-                                           placeholder="Petit, Grand, Pack 6..."
-                                           class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                           placeholder="Ex: Petit, Moyen, Grand..."
+                                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    @error("variants.{$index}.nom")
+                                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                    @enderror
                                 </div>
-                                <div class="col-span-6 md:col-span-3">
-                                    <label class="text-xs font-semibold text-gray-600 mb-1 block">Prix (FCFA)</label>
+                                <div>
+                                    <label class="text-xs font-semibold text-gray-600 mb-1 block">
+                                        <i class="fas fa-coins text-gray-400 mr-1"></i>Prix (FCFA)
+                                    </label>
                                     <input type="number"
                                            wire:model="variants.{{ $index }}.prix"
-                                           placeholder="Prix"
-                                           class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                           placeholder="Ex: 1500"
+                                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                    @error("variants.{$index}.prix")
+                                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                    @enderror
                                 </div>
-                                <div class="col-span-6 md:col-span-3">
-                                    <label class="text-xs font-semibold text-gray-600 mb-1 block">Stock initial</label>
-                                    <input type="number"
-                                           wire:model="variants.{{ $index }}.stock"
-                                           placeholder="Stock"
-                                           value="999"
-                                           class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                            </div>
+
+                            {{-- Stock et Seuil (optionnels) --}}
+                            <div class="bg-white rounded-lg p-4 border border-gray-200">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <i class="fas fa-warehouse text-gray-600"></i>
+                                    <h5 class="font-semibold text-gray-800 text-sm">Gestion du stock (optionnel)</h5>
                                 </div>
-                                <div class="col-span-12 md:col-span-2 flex items-end">
-                                    <button wire:click="supprimerVariant({{ $index }})"
-                                            class="w-full px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-semibold transition">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-xs font-semibold text-gray-600 mb-1 block">
+                                            <i class="fas fa-box text-gray-400 mr-1"></i>Stock disponible
+                                            <span class="text-gray-400 font-normal italic">(vide = illimité)</span>
+                                        </label>
+                                        <input type="number"
+                                               wire:model.live="variants.{{ $index }}.stock"
+                                               placeholder="Laisser vide pour stock illimité"
+                                               min="0"
+                                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            @if(empty($variant['stock']) || $variant['stock'] === '')
+                                                <i class="fas fa-infinity text-green-600"></i> <span class="text-green-600 font-semibold">Stock illimité</span>
+                                            @else
+                                                <i class="fas fa-box-open text-blue-600"></i> <span class="text-blue-600 font-semibold">Stock géré : {{ $variant['stock'] }} unités</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-semibold {{ (empty($variant['stock']) || $variant['stock'] === '') ? 'text-gray-400' : 'text-gray-600' }} mb-1 block">
+                                            <i class="fas fa-exclamation-triangle text-orange-500 mr-1"></i>Seuil d'alerte
+                                            <span class="text-gray-400 font-normal italic">(si stock géré)</span>
+                                        </label>
+                                        <input type="number"
+                                               wire:model="variants.{{ $index }}.seuil_alerte"
+                                               placeholder="Ex: 10"
+                                               min="0"
+                                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 {{ (empty($variant['stock']) || $variant['stock'] === '') ? 'bg-gray-100 cursor-not-allowed' : '' }}"
+                                               @if(empty($variant['stock']) || $variant['stock'] === '') disabled @endif>
+                                        <p class="text-xs {{ (empty($variant['stock']) || $variant['stock'] === '') ? 'text-gray-400' : 'text-orange-600' }} mt-1">
+                                            Alerte quand stock ≤ ce seuil
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     @endforeach
+
+                    @if(count($variants) === 0)
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-box-open text-4xl mb-3 text-gray-300"></i>
+                            <p>Aucune variante. Cliquez sur "Ajouter" pour commencer.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-4 justify-center pt-6 border-t border-gray-200">
                 <button wire:click="sauvegarder"
+                        type="button"
                         class="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5">
                     <i class="fas fa-save mr-2"></i>Sauvegarder
                 </button>
                 <button wire:click="$set('showForm', false)"
+                        type="button"
                         class="px-8 py-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition">
                     <i class="fas fa-times mr-2"></i>Annuler
                 </button>
