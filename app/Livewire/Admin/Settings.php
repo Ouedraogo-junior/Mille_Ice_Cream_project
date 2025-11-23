@@ -17,7 +17,7 @@ class Settings extends Component
     // Entreprise
     public $logoPreview;
     public $logoActuel;
-    public $nomEntreprise = 'Mille Ice Cream';
+    public $nomEntreprise = 'Mila Ice Cream';
     public $adresse = '';
     public $telephone = '';
 
@@ -36,7 +36,7 @@ class Settings extends Component
     {
         try {
             // Charger les paramètres de l'entreprise
-            $this->nomEntreprise = Setting::get('nom_entreprise', 'Mille Ice Cream');
+            $this->nomEntreprise = Setting::get('nom_entreprise', 'Mila Ice Cream');
             $this->adresse = Setting::get('adresse', '');
             $this->telephone = Setting::get('telephone', '');
             $this->logoActuel = Setting::get('logo', null);
