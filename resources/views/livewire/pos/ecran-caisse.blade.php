@@ -335,34 +335,45 @@
             {{-- Effet de brillance au survol --}}
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             
-            {{-- Badge stock amélioré --}}
-@if(optional($variant)->stock !== null)
+{{-- Badge stock amélioré avec gestion stock illimité --}}
+@php
+    $gererStock = $variant->gerer_stock ?? false;
+    $seuilAlerte = $variant->seuil_alerte ?? 10; // Valeur par défaut si null
+@endphp
+
+@if($gererStock)
+    {{-- Stock géré : afficher les badges selon le niveau --}}
     @if($variant->stock <= 0)
         {{-- Stock épuisé --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
+        <span class="absolute top-3 right-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 flex items-center gap-1">
+            <i class="fas fa-ban"></i>
             Épuisé
         </span>
-    @elseif($variant->stock <= 5)
+    @elseif($variant->stock <= $seuilAlerte)
         {{-- Stock faible (alerte) --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 animate-pulse">
-            {{ $variant->stock }} restants
+        <span class="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 animate-pulse flex items-center gap-1">
+            <i class="fas fa-exclamation-triangle"></i>
+            {{ $variant->stock }} restant{{ $variant->stock > 1 ? 's' : '' }}
         </span>
-    @elseif($variant->stock <= 10)
+    @elseif($variant->stock <= ($seuilAlerte * 2))
         {{-- Stock moyen --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
+        <span class="absolute top-3 right-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 flex items-center gap-1">
+            <i class="fas fa-box"></i>
             {{ $variant->stock }} en stock
         </span>
     @else
         {{-- Stock bon --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
-            {{ $variant->stock }} disponibles
+        <span class="absolute top-3 right-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i>
+            {{ $variant->stock }} disponible{{ $variant->stock > 1 ? 's' : '' }}
         </span>
     @endif
-@else
-    {{-- Pas de gestion de stock pour ce produit --}}
-    <span class="absolute top-3 right-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
-        Disponible
-    </span>
+{{-- @else
+    
+    <span class="absolute top-3 right-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 flex items-center gap-1.5">
+        <i class="fas fa-infinity"></i>
+        Ilimité
+    </span> --}}
 @endif
 
             {{-- Image produit avec gestion d'erreur --}}
@@ -443,28 +454,64 @@
     
     {{-- AJOUTE CETTE NOUVELLE SECTION ICI --}}
     {{-- Barre de stock visuelle --}}
-    @if(optional($variant)->stock !== null)
-        <div class="mt-3 space-y-1">
-            <div class="flex items-center justify-between text-xs">
-                <span class="text-purple-300 font-medium">Stock</span>
-                <span class="font-bold {{ $variant->stock <= 5 ? 'text-red-400' : ($variant->stock <= 10 ? 'text-yellow-400' : 'text-emerald-400') }}">
-                    {{ $variant->stock }}
-                </span>
-            </div>
-            {{-- Barre de progression --}}
-            @php
-                // Calculer le pourcentage (max 50 pour l'échelle)
-                $maxStock = 50;
-                $percentage = min(100, ($variant->stock / $maxStock) * 100);
-            @endphp
-            <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-500 {{ $variant->stock <= 5 ? 'bg-gradient-to-r from-red-500 to-rose-600' : ($variant->stock <= 10 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-emerald-500 to-green-600') }}"
-                     style="width: {{ $percentage }}%">
-                </div>
+{{-- Affichage du stock pour une variante de produit --}}
+@php
+    $gererStock = $variant->gerer_stock ?? false;
+    $seuilAlerte = $variant->seuil_alerte ?? 10; // Valeur par défaut si null
+@endphp
+
+@if($gererStock)
+    {{-- Stock géré : afficher le stock avec barre de progression --}}
+    <div class="mt-3 space-y-1">
+        <div class="flex items-center justify-between text-xs">
+            <span class="text-purple-300 font-medium flex items-center gap-1">
+                <i class="fas fa-box text-xs"></i>
+                Stock
+            </span>
+            <span class="font-bold {{ $variant->stock == 0 ? 'text-red-400 animate-pulse' : ($variant->stock <= $seuilAlerte ? 'text-red-400 animate-pulse' : ($variant->stock <= ($seuilAlerte * 2) ? 'text-yellow-400' : 'text-emerald-400')) }}">
+                {{ $variant->stock }}
+            </span>
+        </div>
+        
+        {{-- Barre de progression --}}
+        @php
+            // Calculer le pourcentage basé sur 3x le seuil d'alerte comme "bon stock"
+            $maxStock = $seuilAlerte * 3; // Ex: seuil = 5 → max = 15 pour 100%
+            $percentage = $maxStock > 0 ? min(100, ($variant->stock / $maxStock) * 100) : 0;
+        @endphp
+        <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-500 {{ $variant->stock == 0 ? 'bg-gray-500' : ($variant->stock <= $seuilAlerte ? 'bg-gradient-to-r from-red-500 to-rose-600' : ($variant->stock <= ($seuilAlerte * 2) ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-emerald-500 to-green-600')) }}"
+                 style="width: {{ $percentage }}%">
             </div>
         </div>
-    @endif
-</div>
+        
+        {{-- Alerte stock épuisé --}}
+        @if($variant->stock == 0)
+            <div class="flex items-center gap-1 text-xs text-red-400 font-semibold mt-1">
+                <i class="fas fa-ban"></i>
+                <span>Épuisé</span>
+            </div>
+        @elseif($variant->stock <= $seuilAlerte)
+            <div class="flex items-center gap-1 text-xs text-orange-400 font-semibold mt-1 animate-pulse">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Stock faible (seuil: {{ $seuilAlerte }})</span>
+            </div>
+        @endif
+    </div>
+@else
+    {{-- Stock illimité : afficher l'icône infini --}}
+    <div class="mt-3">
+        <div class="flex items-center justify-between px-3 py-2 bg-green-500/20 rounded-lg border border-green-500/30">
+            <span class="text-green-300 font-medium flex items-center gap-2 text-xs">
+                <i class="fas fa-infinity text-sm"></i>
+                Disponible
+            </span>
+            <span class="text-green-400 font-bold text-xs">
+                <i class="fas fa-check-circle"></i>
+            </span>
+        </div>
+    </div>
+@endif
 
             {{-- Loading indicator --}}
             <div wire:loading wire:target="ajouterAuPanier({{ $produit->id }})" 

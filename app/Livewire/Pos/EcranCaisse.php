@@ -23,8 +23,6 @@ class EcranCaisse extends Component
     
     // Mode de paiement
     public string $modePaiement = 'espece';
-    // Paiement en espèces : somme encaissée par le client
-    // Note: remove typed property to avoid Livewire compatibility issues with some versions
     public $sommeEncaissee = 0;
     
     // UI States
@@ -39,16 +37,14 @@ class EcranCaisse extends Component
     // Offline mode states
     public bool $isOfflineMode = false;
     public int $ventesPendingCount = 0;
+
     /**
      * Chargement initial du composant
      */
     public function mount()
     {
-        // Initialiser le panier vide
         $this->panier = [];
         $this->categorieSelectionnee = null;
-
-        // Vérifier le mode offline (via JavaScript)
         $this->dispatch('check-offline-status');
     }
 
@@ -58,7 +54,6 @@ class EcranCaisse extends Component
     #[Computed]
     public function produits()
     {
-        // On ne retourne que les produits qui ont au moins une variante active
         return Produit::with(['variants' => function($q) {
             $q->where('active', true);
         }])
@@ -108,8 +103,7 @@ class EcranCaisse extends Component
     }
 
     /**
-     * CORRECTION ICI : Calcul de la monnaie à rendre
-     * Utiliser getMonnaieProperty() au lieu de monnaie()
+     * Calcul de la monnaie à rendre
      */
     public function getMonnaieProperty()
     {
@@ -139,9 +133,11 @@ class EcranCaisse extends Component
             return;
         }
 
-        // Vérifier le stock
-        if ($variant->stock !== null && $variant->stock <= 0) {
-            $this->messageErreur = 'Stock insuffisant pour ' . $produit->nom;
+        // Vérifier le stock UNIQUEMENT si géré
+        $gererStock = $variant->gerer_stock ?? false;
+        
+        if ($gererStock && $variant->stock <= 0) {
+            $this->messageErreur = 'Stock épuisé pour ' . $produit->nom;
             return;
         }
 
@@ -149,8 +145,8 @@ class EcranCaisse extends Component
         $cle = 'produit_' . $produitId;
         
         if (isset($this->panier[$cle])) {
-            // Vérifier si on peut ajouter (stock)
-            if ($variant->stock !== null && $this->panier[$cle]['quantite'] >= $variant->stock) {
+            // Vérifier si on peut ajouter (stock) - UNIQUEMENT si géré
+            if ($gererStock && $this->panier[$cle]['quantite'] >= $variant->stock) {
                 $this->messageErreur = 'Stock insuffisant pour ' . $produit->nom;
                 return;
             }
@@ -162,7 +158,8 @@ class EcranCaisse extends Component
                 'nom' => $produit->nom,
                 'prix' => $variant->prix,
                 'quantite' => 1,
-                'stock' => $variant->stock,
+                'stock' => $gererStock ? $variant->stock : null,
+                'gerer_stock' => $gererStock,
                 'image' => $produit->image,
                 'variant_id' => $variant->id,
             ];
@@ -186,9 +183,11 @@ class EcranCaisse extends Component
             return;
         }
 
-        // Vérifier le stock
+        // Vérifier le stock UNIQUEMENT si géré
+        $gererStock = $this->panier[$cle]['gerer_stock'] ?? false;
         $stock = $this->panier[$cle]['stock'];
-        if ($stock !== null && $nouvelleQuantite > $stock) {
+        
+        if ($gererStock && $stock !== null && $nouvelleQuantite > $stock) {
             $this->messageErreur = 'Stock insuffisant';
             return;
         }
@@ -223,61 +222,58 @@ class EcranCaisse extends Component
     public function filtrerCategorie(?int $categorieId)
     {
         $this->categorieSelectionnee = $categorieId;
-        $this->recherche = ''; // Reset recherche
+        $this->recherche = '';
     }
 
     /**
- * Valider vente avec support offline
- */
-public function validerVente()
-{
-    if (empty($this->panier)) {
-        $this->messageErreur = 'Le panier est vide';
-        return;
+     * Valider vente avec support offline
+     */
+    public function validerVente()
+    {
+        if (empty($this->panier)) {
+            $this->messageErreur = 'Le panier est vide';
+            return;
+        }
+
+        if ($this->isOfflineMode) {
+            $this->validerVenteOffline();
+            return;
+        }
+
+        $this->validerVenteOnline();
     }
 
-    // Si mode offline, enregistrer localement
-    if ($this->isOfflineMode) {
-        $this->validerVenteOffline();
-        return;
+    /**
+     * Enregistrer vente en mode offline
+     */
+    private function validerVenteOffline()
+    {
+        try {
+            $venteData = [
+                'panier' => array_values($this->panier),
+                'total' => $this->totalPanier,
+                'mode_paiement' => $this->modePaiement,
+                'montant' => $this->modePaiement === 'espece' ? floatval($this->sommeEncaissee) : $this->totalPanier,
+                'monnaie_rendue' => $this->modePaiement === 'espece' ? max(0, floatval($this->sommeEncaissee) - $this->totalPanier) : 0,
+                'timestamp' => now()->timestamp,
+            ];
+
+            $this->dispatch('save-offline-vente', venteData: $venteData);
+            
+            $this->panier = [];
+            $this->sommeEncaissee = 0;
+            $this->messageSucces = 'Vente enregistrée en mode hors ligne. Elle sera synchronisée automatiquement.';
+            
+        } catch (\Exception $e) {
+            $this->messageErreur = 'Erreur : ' . $e->getMessage();
+        }
     }
 
-    // Sinon, mode normal (code existant)
-    $this->validerVenteOnline();
-}
-
-/**
- * Enregistrer vente en mode offline
- */
-private function validerVenteOffline()
-{
-    try {
-        $venteData = [
-            'panier' => array_values($this->panier),
-            'total' => $this->totalPanier,
-            'mode_paiement' => $this->modePaiement,
-            'montant' => $this->modePaiement === 'espece' ? floatval($this->sommeEncaissee) : $this->totalPanier,
-            'monnaie_rendue' => $this->modePaiement === 'espece' ? max(0, floatval($this->sommeEncaissee) - $this->totalPanier) : 0,
-            'timestamp' => now()->timestamp,
-        ];
-
-        // Envoyer au JavaScript pour sauvegarde locale
-        $this->dispatch('save-offline-vente', venteData: $venteData);
-        
-        $this->panier = [];
-        $this->sommeEncaissee = 0;
-        $this->messageSucces = 'Vente enregistrée en mode hors ligne. Elle sera synchronisée automatiquement.';
-        
-    } catch (\Exception $e) {
-        $this->messageErreur = 'Erreur : ' . $e->getMessage();
-    }
-}
     /**
      * Valider et enregistrer la vente en mode online
      */
     public function validerVenteOnline()
     {
-        // Validation
         if (empty($this->panier)) {
             $this->messageErreur = 'Le panier est vide';
             return;
@@ -286,7 +282,6 @@ private function validerVenteOffline()
         $this->isProcessing = true;
         $this->messageErreur = null;
 
-        // Si paiement en espèces, vérifier que la somme encaissée couvre le total
         if ($this->modePaiement === 'espece') {
             if ($this->sommeEncaissee <= 0 || $this->sommeEncaissee < $this->totalPanier) {
                 $this->messageErreur = 'Somme encaissée insuffisante';
@@ -298,13 +293,13 @@ private function validerVenteOffline()
         try {
             DB::beginTransaction();
 
-            // Créer la vente
             $montant = $this->modePaiement === 'espece'
                 ? floatval($this->sommeEncaissee)
                 : $this->totalPanier;
             $monnaieRendue = $this->modePaiement === 'espece'
                 ? max(0, floatval($this->sommeEncaissee) - $this->totalPanier)
                 : 0;
+                
             $vente = Vente::create([
                 'user_id' => auth()->id(),
                 'total' => $this->totalPanier,
@@ -325,41 +320,36 @@ private function validerVenteOffline()
                     'sous_total' => $item['prix'] * $item['quantite'],
                 ]);
 
-                // Décrémenter le stock de la variante
+                // Décrémenter le stock UNIQUEMENT si géré
                 $variant = \App\Models\Variant::find($item['variant_id'] ?? null);
-                if ($variant && $variant->stock !== null) {
-    $ancienStock = $variant->stock + $item['quantite']; // stock avant vente
-    $variant->decrement('stock', $item['quantite']);
+                if ($variant) {
+                    $gererStock = $variant->gerer_stock ?? false;
+                    
+                    if ($gererStock && $variant->stock !== null) {
+                        $ancienStock = $variant->stock;
+                        $variant->decrement('stock', $item['quantite']);
+                        $variant->refresh();
 
-    // Recharge la variante pour avoir le nouveau stock
-    $variant->refresh();
-
-    // Si on passe SOUS le seuil d'alerte pendant cette vente
-    if ($variant->seuil_alerte !== null 
-        && $ancienStock > $variant->seuil_alerte 
-        && $variant->stock <= $variant->seuil_alerte) {
-        
-        event(new StockAlerteEvent($variant));
-        // ou StockAlerteEvent::dispatch($variant);
-    }
-}
+                        // Vérifier si on passe sous le seuil d'alerte
+                        if ($variant->seuil_alerte !== null 
+                            && $ancienStock > $variant->seuil_alerte 
+                            && $variant->stock <= $variant->seuil_alerte) {
+                            
+                            event(new StockAlerteEvent($variant));
+                        }
+                    }
+                    // Si stock non géré, on ne fait rien
+                }
             }
 
             DB::commit();
 
-            // Sauvegarder l'ID de la vente pour l'impression
             $this->derniereVenteId = $vente->id;
-            
-            // Vider le panier
             $this->panier = [];
-            // Réinitialiser somme encaissée
             $this->sommeEncaissee = 0;
-            
-            // Afficher confirmation
             $this->showConfirmation = true;
             $this->messageSucces = 'Vente enregistrée avec succès !';
             
-            // Émettre événement pour impression
             $this->dispatch('vente-validee', venteId: $vente->id);
 
         } catch (\Exception $e) {
@@ -372,13 +362,14 @@ private function validerVenteOffline()
     }
 
     /**
- * Écouter le changement de statut offline
- */
-#[On('offline-status-changed')]
-public function updateOfflineStatus($isOffline)
-{
-    $this->isOfflineMode = $isOffline;
-}
+     * Écouter le changement de statut offline
+     */
+    #[On('offline-status-changed')]
+    public function updateOfflineStatus($isOffline)
+    {
+        $this->isOfflineMode = $isOffline;
+    }
+
     /**
      * Fermer la confirmation et recommencer
      */
@@ -393,19 +384,18 @@ public function updateOfflineStatus($isOffline)
     }
 
     /**
-     * Ajouter un montant rapide à la somme encaissée (ex: boutons +500, +1000)
+     * Ajouter un montant rapide à la somme encaissée
      */
     public function ajouterMontantEncaisse(float $montant)
     {
         $this->sommeEncaissee = floatval($this->sommeEncaissee) + $montant;
-        // S'assurer que ce n'est jamais négatif
         if ($this->sommeEncaissee < 0) {
             $this->sommeEncaissee = 0;
         }
     }
 
     /**
-     * Définir la somme encaissée exactement égale au total (payer exactement)
+     * Définir la somme encaissée exactement égale au total
      */
     public function definirMontantExact()
     {
@@ -423,12 +413,11 @@ public function updateOfflineStatus($isOffline)
     }
 
     /**
-     * Écouter les événements (pour synchronisation)
+     * Écouter les événements
      */
     #[On('stock-updated')]
     public function rafraichirStock()
     {
-        // Force le recalcul des produits
         unset($this->produits);
     }
 
@@ -445,7 +434,7 @@ public function updateOfflineStatus($isOffline)
     }
 
     /**
-     * Effacer les messages après quelques secondes
+     * Effacer les messages
      */
     public function effacerMessages()
     {
