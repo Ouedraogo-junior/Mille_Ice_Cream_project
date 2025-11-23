@@ -7,7 +7,7 @@
                 <h1 class="text-4xl font-bold text-gray-800">Paramètres</h1>
                 <p class="text-gray-500 mt-2">
                     @can('admin')
-                        Personnalisez votre expérience Milla Ice Cream
+                        Personnalisez votre expérience Mila Ice Cream
                     @endcan
                 </p>
             </div>

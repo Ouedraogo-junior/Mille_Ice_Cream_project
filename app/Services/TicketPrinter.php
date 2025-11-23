@@ -164,7 +164,7 @@ class TicketPrinter
         return [
             'nom' => config('app.nom_entreprise', 'GLACIER MILA'),
             'adresse' => config('app.adresse_entreprise', 'Ouagadougou, Burkina Faso'),
-            'telephone' => config('app.tel_entreprise', '+226 XX XX XX XX'),
+            'telephone' => config('app.tel_entreprise', '+226 63 84 09 09'),
             'email' => config('app.email_entreprise', 'contact@glacier.bf'),
             'message_footer' => config('app.message_ticket', 'Au plaisir de vous revoir !'),
             'logo' => config('app.logo_entreprise', null),

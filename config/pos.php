@@ -193,7 +193,7 @@ return [
     'entreprise' => [
         'nom' => env('APP_NOM_ENTREPRISE', 'GLACIER MILA'),
         'adresse' => env('APP_ADRESSE_ENTREPRISE', 'Ouagadougou, Burkina Faso'),
-        'telephone' => env('APP_TEL_ENTREPRISE', '+226 XX XX XX XX'),
+        'telephone' => env('APP_TEL_ENTREPRISE', '+226  XX'),
         'email' => env('APP_EMAIL_ENTREPRISE', 'contact@glacier.bf'),
         'logo' => env('APP_LOGO_ENTREPRISE', null),
         'message_footer' => env('APP_MESSAGE_TICKET', 'Merci de votre visite ! À bientôt.'),

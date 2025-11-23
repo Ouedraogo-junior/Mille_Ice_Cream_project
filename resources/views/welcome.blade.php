@@ -19,7 +19,7 @@
                     <!-- Option 1: Utilisez votre logo personnalisé -->
                     <img src="{{ asset('images/logo.jpg') }}" alt="Glacier Pro Logo" class="logo-image">
                 </div>
-                <span class="logo-text">Glacier</span>
+                <span class="logo-text">Mila Ice Cream</span>
             </div>
         
         <nav class="nav-links">
@@ -387,9 +387,9 @@
                 <h3>Appelez-nous</h3>
                 <p class="contact-info">
                     <strong>Standard:</strong><br>
-                    +226 25 12 34 56
+                    +226 77 04 53 15
                 </p>
-                <a href="https://wa.me/22625123456" target="_blank" class="whatsapp-btn">
+                <a href="https://wa.me/22663840909" target="_blank" class="whatsapp-btn">
                     <i class="fab fa-whatsapp"></i>
                     Discuter sur WhatsApp
                 </a>
@@ -417,9 +417,12 @@
     <!-- Footer -->
     <footer>
         <div class="footer-content">
-            <div class="logo-container" style="justify-content: center; margin-bottom: 2rem;">
-                <div class="logo-icon">🍦</div>
-                <span class="logo-text">Glacier Pro</span>
+            <div class="logo-container">
+                <div class="logo-wrapper">
+                    <!-- Option 1: Utilisez votre logo personnalisé -->
+                    <img src="{{ asset('images/logo.jpg') }}" alt="Glacier Pro Logo" class="logo-image">
+                </div>
+                <span class="logo-text">Mila Ice Cream</span>
             </div>
 
             <div class="footer-links">
@@ -437,7 +440,8 @@
                     Développé avec <i class="fas fa-heart" style="color: #f43f5e;"></i> au Burkina Faso
                 </p>
                 <p style="margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.6;">
-                    Propulsé par Laravel 12 & Livewire
+                    Developpé par <a href="josi1st.vercel.app" target="_blank" style="color: #10b981; text-decoration: underline;">Josias DJIOLGOU</a>
+                    & <a href="https://github.com/Ouedraogo-junior/" target="_blank" style="color: #10b981; text-decoration: underline;">Omar OUEDRAOGO</a>
                 </p>
             </div>
         </div>

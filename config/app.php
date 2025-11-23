@@ -126,7 +126,7 @@ return [
     // Informations entreprise pour tickets
     'nom_entreprise' => env('ENTREPRISE_NOM', 'MILLA ICE CREAM'),
     'adresse_entreprise' => env('ENTREPRISE_ADRESSE', 'Ouagadougou, Burkina Faso'),
-    'tel_entreprise' => env('ENTREPRISE_TEL', '+226 XX XX XX XX'),
+    'tel_entreprise' => env('ENTREPRISE_TEL', '+226 63 84 09 09'),
     'email_entreprise' => env('ENTREPRISE_EMAIL', 'contact@glacier.bf'),
     'message_ticket' => env('ENTREPRISE_MESSAGE', 'Au plaisir de vous revoir !'),
     'logo_entreprise' => env('ENTREPRISE_LOGO', "images/logo.jpg"),

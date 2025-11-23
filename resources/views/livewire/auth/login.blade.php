@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Connexion • Milla Ice Cream</title>
+<title>Connexion • Mila Ice Cream</title>
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -103,7 +103,7 @@ body {
     <div class="relative">
         <input type="text" name="email" id="email" required autofocus autocomplete="username" value="{{ old('email') }}"
                class="input-focus w-full px-5 py-3 pl-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-sm"
-               placeholder="admin@millaicecream.com ou admin">
+               placeholder="admin@milaicecream.com ou admin">
         <i class="fas fa-at absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
     </div>
 </div>
@@ -146,7 +146,7 @@ body {
         </form>
 
         <div class="mt-6 text-center text-xs text-gray-500">
-            <p>© {{ date('Y') }} Milla Ice Cream • Tous droits réservés</p>
+            <p>© {{ date('Y') }} Mila Ice Cream • Tous droits réservés</p>
         </div>
     </div>
 
@@ -163,12 +163,12 @@ body {
         <div class="relative pulse-glow mb-4">
             <a href="{{ route('home') }}">
                 <div class="w-32 h-32 mx-auto bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border-4 border-white/30 overflow-hidden hover:border-white/70 transition duration-300">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="Logo Milla Ice Cream" class="w-full h-full object-cover p-2 rounded-full">
+                    <img src="{{ asset('images/logo.jpg') }}" alt="Logo Mila Ice Cream" class="w-full h-full object-cover p-2 rounded-full">
                 </div>
             </a>
         </div>
 
-        <h1 class="text-6xl font-extrabold text-white mb-2 tracking-tight drop-shadow-lg">Milla</h1>
+        <h1 class="text-6xl font-extrabold text-white mb-2 tracking-tight drop-shadow-lg">Mila</h1>
         <h1 class="text-6xl font-extrabold text-white mb-6 tracking-tight drop-shadow-lg">Ice Cream</h1>
         <p class="text-cyan-50 text-xl font-medium border-t border-white/30 pt-3">Espace Administration</p>
 
@@ -177,7 +177,7 @@ body {
                 <i class="fas fa-info-circle text-white text-xl mt-1"></i>
                 <div>
                     <h4 class="font-semibold text-white mb-1">Accès sécurisé</h4>
-                    <p class="text-cyan-50">Réservé au personnel autorisé de Milla Ice Cream.</p>
+                    <p class="text-cyan-50">Réservé au personnel autorisé de Mila Ice Cream.</p>
                 </div>
             </div>
         </div>
