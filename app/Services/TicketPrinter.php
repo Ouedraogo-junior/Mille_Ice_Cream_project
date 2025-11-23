@@ -77,8 +77,16 @@ class TicketPrinter
 
         try {
             // Créer un connecteur vers l'imprimante
-            // Pour test, on utilise un buffer
-            $connector = new \Mike42\Escpos\PrintConnectors\DummyPrintConnector();
+            // Pour USB (recommandé pour test local)
+            //$connector = new \Mike42\Escpos\PrintConnectors\FilePrintConnector("/dev/usb/lp0");
+            // Ou sur Windows
+            //$connector = new \Mike42\Escpos\PrintConnectors\WindowsPrintConnector("POS-80");
+
+            // Pour Ethernet/Réseau (si imprimante connectée en IP)
+            $connector = new \Mike42\Escpos\PrintConnectors\NetworkPrintConnector("192.168.123.100", 9100);
+
+            // Pour Serial
+            //$connector = new \Mike42\Escpos\PrintConnectors\SerialPrintConnector("/dev/ttyUSB0");
             $printer = new \Mike42\Escpos\Printer($connector);
 
             // Header

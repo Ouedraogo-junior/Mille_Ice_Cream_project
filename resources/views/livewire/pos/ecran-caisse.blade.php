@@ -1172,4 +1172,178 @@ $wire.on('ventes-synchronisees', () => {
     }
 </script>
 @endscript
+
+<script>
+// ==========================================
+// SYSTÈME DE DÉFILEMENT DES CATÉGORIES
+// ==========================================
+
+// Fonction de défilement des catégories
+function scrollCategories(direction) {
+    const container = document.getElementById('categories-container');
+    const scrollAmount = 300; // Distance de défilement en pixels
+    
+    if (!container) {
+        console.error('Conteneur des catégories introuvable');
+        return;
+    }
+    
+    if (direction === 'left') {
+        container.scrollBy({
+            left: -scrollAmount,
+            behavior: 'smooth'
+        });
+    } else if (direction === 'right') {
+        container.scrollBy({
+            left: scrollAmount,
+            behavior: 'smooth'
+        });
+    }
+}
+
+// Fonction pour vérifier et afficher/masquer les boutons de défilement
+function updateScrollButtons() {
+    const container = document.getElementById('categories-container');
+    const scrollLeft = document.getElementById('scroll-left');
+    const scrollRight = document.getElementById('scroll-right');
+    
+    if (!container || !scrollLeft || !scrollRight) {
+        console.warn('Éléments de scroll non trouvés');
+        return;
+    }
+    
+    // Vérifier si le conteneur a du contenu débordant
+    const hasOverflow = container.scrollWidth > container.clientWidth;
+    
+    if (!hasOverflow) {
+        // Pas de débordement, masquer les boutons
+        scrollLeft.classList.add('hidden');
+        scrollRight.classList.add('hidden');
+        return;
+    }
+    
+    // Il y a du débordement, gérer l'affichage des boutons
+    const isAtStart = container.scrollLeft <= 10;
+    const isAtEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 10;
+    
+    // Bouton gauche : visible si on n'est pas au début
+    if (isAtStart) {
+        scrollLeft.classList.add('hidden');
+    } else {
+        scrollLeft.classList.remove('hidden');
+    }
+    
+    // Bouton droit : visible si on n'est pas à la fin
+    if (isAtEnd) {
+        scrollRight.classList.add('hidden');
+    } else {
+        scrollRight.classList.remove('hidden');
+    }
+}
+
+// Initialiser au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎯 Initialisation du système de défilement des catégories');
+    
+    const container = document.getElementById('categories-container');
+    
+    if (container) {
+        // Vérifier initialement
+        setTimeout(updateScrollButtons, 100);
+        
+        // Écouter le défilement pour mettre à jour les boutons
+        container.addEventListener('scroll', updateScrollButtons);
+        
+        // Écouter le redimensionnement de la fenêtre
+        window.addEventListener('resize', () => {
+            setTimeout(updateScrollButtons, 100);
+        });
+        
+        // Observer les changements de contenu (pour Livewire)
+        const observer = new MutationObserver(() => {
+            setTimeout(updateScrollButtons, 100);
+        });
+        
+        observer.observe(container, { 
+            childList: true, 
+            subtree: true,
+            attributes: true
+        });
+        
+        console.log('✅ Système de défilement initialisé');
+    } else {
+        console.warn('⚠️ Conteneur des catégories non trouvé au chargement');
+    }
+});
+
+// Pour Livewire : réinitialiser après chaque mise à jour
+if (window.Livewire) {
+    document.addEventListener('livewire:navigated', function() {
+        console.log('🔄 Livewire navigated - mise à jour des boutons');
+        setTimeout(updateScrollButtons, 200);
+    });
+    
+    // Hook Livewire v3
+    if (typeof Livewire.hook === 'function') {
+        Livewire.hook('morph.updated', () => {
+            console.log('🔄 Livewire morph updated');
+            setTimeout(updateScrollButtons, 200);
+        });
+    }
+    
+    // Alternative pour Livewire v2
+    if (typeof Livewire.on === 'function') {
+        Livewire.on('contentChanged', () => {
+            console.log('🔄 Content changed');
+            setTimeout(updateScrollButtons, 200);
+        });
+    }
+}
+
+// Ajouter une classe CSS pour masquer la scrollbar horizontale par défaut
+const style = document.createElement('style');
+style.textContent = `
+    .categories-scroll {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE et Edge */
+    }
+    
+    .categories-scroll::-webkit-scrollbar {
+        display: none; /* Chrome, Safari et Opera */
+    }
+    
+    /* Afficher la scrollbar au survol pour debug */
+    .categories-scroll:hover::-webkit-scrollbar {
+        display: block;
+        height: 4px;
+    }
+    
+    .categories-scroll:hover::-webkit-scrollbar-thumb {
+        background: rgba(168, 85, 247, 0.5);
+        border-radius: 4px;
+    }
+    
+    /* Animation des boutons */
+    #scroll-left, #scroll-right {
+        transition: all 0.3s ease;
+    }
+    
+    #scroll-left:not(.hidden), #scroll-right:not(.hidden) {
+        animation: fadeInScale 0.3s ease;
+    }
+    
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+
 </div>
