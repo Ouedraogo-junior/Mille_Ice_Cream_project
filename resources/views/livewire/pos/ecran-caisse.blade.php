@@ -370,7 +370,15 @@
                             <span class="text-6xl">🍦</span>
                         </div>
                     @else
-                        <span class="text-6xl">🍦</span>
+                        @if($produit->categorie->nom === 'Boissons')
+                            <span class="text-6xl">🥤</span>
+                        @elseif($produit->categorie->nom === 'Glaces')
+                            <span class="text-6xl">🍦</span>
+                        @elseif($produit->categorie->nom === 'Cookies')
+                            <span class="text-6xl">🍪</span>
+                        @elseif($produit->categorie->nom === 'Bubble Waffle')  
+                            <span class="text-6xl">🧇</span>
+                        @endif 
                     @endif
                 </div>
 

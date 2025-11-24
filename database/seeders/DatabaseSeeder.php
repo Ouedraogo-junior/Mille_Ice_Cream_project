@@ -17,6 +17,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // ========================================
+        // UTILISATEURS
+        // ========================================
+        
         // Créer un admin
         User::create([
             'name' => 'Admin Glacier',
@@ -43,7 +47,10 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // Créer les catégories
+        // ========================================
+        // CATÉGORIES
+        // ========================================
+        
         $categories = [
             [
                 'nom' => 'Glaces',
@@ -52,28 +59,22 @@ class DatabaseSeeder extends Seeder
                 'ordre' => 1,
             ],
             [
-                'nom' => 'Sorbets',
-                'couleur' => '#10B981',
-                'icone' => '🍧',
+                'nom' => 'Cookies',
+                'couleur' => '#F59E0B',
+                'icone' => '🍪',
                 'ordre' => 2,
             ],
             [
-                'nom' => 'Milkshakes',
-                'couleur' => '#F59E0B',
-                'icone' => '🥤',
+                'nom' => 'Bubble Waffle',
+                'couleur' => '#EC4899',
+                'icone' => '🧇',
                 'ordre' => 3,
             ],
             [
-                'nom' => 'Toppings',
-                'couleur' => '#EC4899',
-                'icone' => '🍬',
-                'ordre' => 4,
-            ],
-            [
                 'nom' => 'Boissons',
-                'couleur' => '#6366F1',
-                'icone' => '🥤',
-                'ordre' => 5,
+                'couleur' => '#10B981',
+                'icone' => '💧',
+                'ordre' => 4,
             ],
         ];
 
@@ -81,242 +82,235 @@ class DatabaseSeeder extends Seeder
             Categorie::create($cat);
         }
 
-        // Créer des produits
-        $produits = [
-            // Glaces
-            [
-                'categorie_id' => 1,
-                'nom' => 'Vanille Classique',
-                'description' => 'Glace vanille onctueuse',
-                'prix' => 500,
-                'stock' => 50,
-                'is_favori' => true,
-                'ordre' => 1,
-            ],
-            [
-                'categorie_id' => 1,
-                'nom' => 'Chocolat Intense',
-                'description' => 'Glace au chocolat noir',
-                'prix' => 600,
-                'stock' => 45,
-                'is_favori' => true,
-                'ordre' => 2,
-            ],
-            [
-                'categorie_id' => 1,
-                'nom' => 'Fraise',
-                'description' => 'Glace à la fraise',
-                'prix' => 550,
-                'stock' => 40,
-                'ordre' => 3,
-            ],
-            [
-                'categorie_id' => 1,
-                'nom' => 'Pistache',
-                'description' => 'Glace à la pistache',
-                'prix' => 700,
-                'stock' => 30,
-                'ordre' => 4,
-            ],
-            [
-                'categorie_id' => 1,
-                'nom' => 'Caramel Beurre Salé',
-                'description' => 'Glace caramel avec pointe de sel',
-                'prix' => 650,
-                'stock' => 35,
-                'is_favori' => true,
-                'ordre' => 5,
-            ],
-            [
-                'categorie_id' => 1,
-                'nom' => 'Menthe Chocolat',
-                'description' => 'Glace menthe avec pépites de chocolat',
-                'prix' => 600,
-                'stock' => 25,
-                'ordre' => 6,
-            ],
+        // ========================================
+        // PRODUITS ET VARIANTES
+        // ========================================
 
-            // Sorbets
-            [
-                'categorie_id' => 2,
-                'nom' => 'Mangue',
-                'description' => 'Sorbet mangue fraîche',
-                'prix' => 500,
-                'stock' => 40,
-                'is_favori' => true,
-                'ordre' => 1,
-            ],
-            [
-                'categorie_id' => 2,
-                'nom' => 'Citron',
-                'description' => 'Sorbet citron acidulé',
-                'prix' => 450,
-                'stock' => 35,
-                'ordre' => 2,
-            ],
-            [
-                'categorie_id' => 2,
-                'nom' => 'Passion',
-                'description' => 'Sorbet fruit de la passion',
-                'prix' => 550,
-                'stock' => 30,
-                'ordre' => 3,
-            ],
-            [
-                'categorie_id' => 2,
-                'nom' => 'Framboise',
-                'description' => 'Sorbet framboise intense',
-                'prix' => 600,
-                'stock' => 25,
-                'ordre' => 4,
-            ],
+        // -------------------- CATÉGORIE 1 : GLACES --------------------
+        
+        // Glace de base (avec 3 formats)
+        $glaceBase = Produit::create([
+            'categorie_id' => 1,
+            'nom' => 'Glace',
+            'description' => 'Glace artisanale',
+            'is_favori' => true,
+            'ordre' => 1,
+        ]);
+        
+        Variant::create(['produit_id' => $glaceBase->id, 'nom' => 'Petit format', 'prix' => 1000, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
+        Variant::create(['produit_id' => $glaceBase->id, 'nom' => 'Moyen format', 'prix' => 2000, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
+        Variant::create(['produit_id' => $glaceBase->id, 'nom' => 'Grand format', 'prix' => 2500, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
 
-            // Milkshakes
-            [
-                'categorie_id' => 3,
-                'nom' => 'Milkshake Vanille',
-                'description' => 'Milkshake vanille onctueux',
-                'prix' => 1000,
-                'stock' => 20,
-                'ordre' => 1,
-            ],
-            [
-                'categorie_id' => 3,
-                'nom' => 'Milkshake Chocolat',
-                'description' => 'Milkshake chocolat gourmand',
-                'prix' => 1000,
-                'stock' => 20,
-                'is_favori' => true,
-                'ordre' => 2,
-            ],
-            [
-                'categorie_id' => 3,
-                'nom' => 'Milkshake Fraise',
-                'description' => 'Milkshake fraise délicieux',
-                'prix' => 1000,
-                'stock' => 20,
-                'ordre' => 3,
-            ],
-            [
-                'categorie_id' => 3,
-                'nom' => 'Milkshake Banane',
-                'description' => 'Milkshake banane crémeux',
-                'prix' => 1000,
-                'stock' => 15,
-                'ordre' => 4,
-            ],
+        // Glace avec toppings - Vermicelles
+        $glaceVermicelles = Produit::create([
+            'categorie_id' => 1,
+            'nom' => 'Glace avec Vermicelles',
+            'description' => 'Glace avec vermicelles colorés',
+            'is_favori' => false,
+            'ordre' => 2,
+        ]);
+        
+        Variant::create(['produit_id' => $glaceVermicelles->id, 'nom' => 'Petit format', 'prix' => 1500, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]); // 1000 + 500
+        Variant::create(['produit_id' => $glaceVermicelles->id, 'nom' => 'Moyen format', 'prix' => 2500, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]); // 2000 + 500
+        Variant::create(['produit_id' => $glaceVermicelles->id, 'nom' => 'Grand format', 'prix' => 3000, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]); // 2500 + 500
 
-            // Toppings
-            [
-                'categorie_id' => 4,
-                'nom' => 'Coulis Chocolat',
-                'description' => 'Nappage chocolat',
-                'prix' => 200,
-                'stock' => 100,
-                'ordre' => 1,
-            ],
-            [
-                'categorie_id' => 4,
-                'nom' => 'Coulis Caramel',
-                'description' => 'Nappage caramel',
-                'prix' => 200,
-                'stock' => 100,
-                'ordre' => 2,
-            ],
-            [
-                'categorie_id' => 4,
-                'nom' => 'Chantilly',
-                'description' => 'Crème chantilly',
-                'prix' => 150,
-                'stock' => 80,
-                'ordre' => 3,
-            ],
-            [
-                'categorie_id' => 4,
-                'nom' => 'Vermicelles Chocolat',
-                'description' => 'Vermicelles en chocolat',
-                'prix' => 100,
-                'stock' => 150,
-                'ordre' => 4,
-            ],
-            [
-                'categorie_id' => 4,
-                'nom' => 'Noix Concassées',
-                'description' => 'Mélange de noix',
-                'prix' => 250,
-                'stock' => 60,
-                'ordre' => 5,
-            ],
-            [
-                'categorie_id' => 4,
-                'nom' => 'Smarties',
-                'description' => 'Bonbons colorés',
-                'prix' => 150,
-                'stock' => 120,
-                'ordre' => 6,
-            ],
+        // Glace avec toppings - Coulis Chocolat
+        $glaceCoulisChoco = Produit::create([
+            'categorie_id' => 1,
+            'nom' => 'Glace avec Coulis Chocolat',
+            'description' => 'Glace nappée de coulis chocolat',
+            'is_favori' => true,
+            'ordre' => 3,
+        ]);
+        
+        Variant::create(['produit_id' => $glaceCoulisChoco->id, 'nom' => 'Petit format', 'prix' => 1500, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
+        Variant::create(['produit_id' => $glaceCoulisChoco->id, 'nom' => 'Moyen format', 'prix' => 2500, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
+        Variant::create(['produit_id' => $glaceCoulisChoco->id, 'nom' => 'Grand format', 'prix' => 3000, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
 
-            // Boissons
-            [
-                'categorie_id' => 5,
-                'nom' => 'Eau Minérale 50cl',
-                'description' => 'Eau minérale fraîche',
-                'prix' => 300,
-                'stock' => 100,
-                'ordre' => 1,
-            ],
-            [
-                'categorie_id' => 5,
-                'nom' => 'Coca-Cola 33cl',
-                'description' => 'Coca-Cola canette',
-                'prix' => 500,
-                'stock' => 80,
-                'is_favori' => true,
-                'ordre' => 2,
-            ],
-            [
-                'categorie_id' => 5,
-                'nom' => 'Jus Orange',
-                'description' => 'Jus d\'orange 100% pur',
-                'prix' => 600,
-                'stock' => 50,
-                'ordre' => 3,
-            ],
-            [
-                'categorie_id' => 5,
-                'nom' => 'Thé Glacé',
-                'description' => 'Thé glacé pêche',
-                'prix' => 500,
-                'stock' => 60,
-                'ordre' => 4,
-            ],
+        // Glace avec toppings - Fraise
+        $glaceFraise = Produit::create([
+            'categorie_id' => 1,
+            'nom' => 'Glace avec Fraise',
+            'description' => 'Glace avec coulis fraise',
+            'is_favori' => false,
+            'ordre' => 4,
+        ]);
+        
+        Variant::create(['produit_id' => $glaceFraise->id, 'nom' => 'Petit format', 'prix' => 1500, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
+        Variant::create(['produit_id' => $glaceFraise->id, 'nom' => 'Moyen format', 'prix' => 2500, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
+        Variant::create(['produit_id' => $glaceFraise->id, 'nom' => 'Grand format', 'prix' => 3000, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
+
+        // Autres glace (produit générique pour flexibilité)
+        $autresGlace = Produit::create([
+            'categorie_id' => 1,
+            'nom' => 'Autres Glace',
+            'description' => 'Autres variétés de glace',
+            'is_favori' => false,
+            'ordre' => 5,
+        ]);
+        
+        Variant::create(['produit_id' => $autresGlace->id, 'nom' => 'Standard', 'prix' => 0, 'stock' => 0, 'seuil_alerte' => 10, 'active' => true]);
+
+        // -------------------- CATÉGORIE 2 : COOKIES --------------------
+        
+        $cookies = [
+            ['nom' => 'Cookies aux pépites de chocolat noir sucré', 'prix' => 700],
+            ['nom' => 'Cookies Pistachio', 'prix' => 700],
+            ['nom' => 'Cookies Red Velvet', 'prix' => 700],
+            ['nom' => 'Cookies Tout Choco', 'prix' => 700],
+            ['nom' => 'Cookies à la vanille et vermicelles', 'prix' => 700],
+            ['nom' => 'Cookies au chocolat blanc', 'prix' => 700],
         ];
 
-        foreach ($produits as $prod) {
-            // Extraire prix/stock si présents pour créer une variante
-            $prix = $prod['prix'] ?? null;
-            $stock = $prod['stock'] ?? null;
-
-            // Ne pas passer prix/stock à la création du produit
-            $prodData = $prod;
-            unset($prodData['prix'], $prodData['stock']);
-
-            $produit = Produit::create($prodData);
-
-            // Créer une variante par défaut si on a un prix (sinon variante vide)
+        $ordre = 1;
+        foreach ($cookies as $cookie) {
+            $prod = Produit::create([
+                'categorie_id' => 2,
+                'nom' => $cookie['nom'],
+                'description' => 'Cookie artisanal',
+                'is_favori' => $ordre <= 2, // Les 2 premiers en favoris
+                'ordre' => $ordre++,
+            ]);
+            
             Variant::create([
-                'produit_id' => $produit->id,
-                'nom' => 'Standard',
-                'prix' => $prix ?? 0,
-                'stock' => $stock ?? 0,
-                'seuil_alerte' => $prod['seuil_alerte'] ?? 10,
-                'active' => true,
+                'produit_id' => $prod->id,
+                'nom' => 'Unité',
+                'prix' => $cookie['prix'],
+                'stock' => 50,
+                'seuil_alerte' => 10,
+                'active' => true
             ]);
         }
 
+        // Cookies en pack
+        $cookiesPack4 = Produit::create([
+            'categorie_id' => 2,
+            'nom' => 'Cookies Pack de 4',
+            'description' => 'Pack de 4 cookies au choix',
+            'is_favori' => true,
+            'ordre' => $ordre++,
+        ]);
+        Variant::create(['produit_id' => $cookiesPack4->id, 'nom' => 'Pack 4', 'prix' => 2800, 'stock' => 30, 'seuil_alerte' => 5, 'active' => true]);
+
+        $cookiesPack6 = Produit::create([
+            'categorie_id' => 2,
+            'nom' => 'Cookies Pack de 6',
+            'description' => 'Pack de 6 cookies au choix',
+            'is_favori' => true,
+            'ordre' => $ordre++,
+        ]);
+        Variant::create(['produit_id' => $cookiesPack6->id, 'nom' => 'Pack 6', 'prix' => 4200, 'stock' => 20, 'seuil_alerte' => 5, 'active' => true]);
+
+        // Autres cookies
+        $autresCookies = Produit::create([
+            'categorie_id' => 2,
+            'nom' => 'Autres Cookies',
+            'description' => 'Autres variétés de cookies',
+            'is_favori' => false,
+            'ordre' => $ordre,
+        ]);
+        Variant::create(['produit_id' => $autresCookies->id, 'nom' => 'Standard', 'prix' => 0, 'stock' => 0, 'seuil_alerte' => 10, 'active' => true]);
+
+        // -------------------- CATÉGORIE 3 : BUBBLE WAFFLE --------------------
+        
+        $bubbleSucre = Produit::create([
+            'categorie_id' => 3,
+            'nom' => 'Bubble Sucré',
+            'description' => 'Bubble waffle nature sucré',
+            'is_favori' => false,
+            'ordre' => 1,
+        ]);
+        Variant::create(['produit_id' => $bubbleSucre->id, 'nom' => 'Standard', 'prix' => 1000, 'stock' => 50, 'seuil_alerte' => 10, 'active' => true]);
+
+        $extraCoulis = Produit::create([
+            'categorie_id' => 3,
+            'nom' => 'Extra Coulis Vermicelles',
+            'description' => 'Supplément coulis et vermicelles',
+            'is_favori' => false,
+            'ordre' => 2,
+        ]);
+        Variant::create(['produit_id' => $extraCoulis->id, 'nom' => 'Extra', 'prix' => 250, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
+
+        $bubbleGlace = Produit::create([
+            'categorie_id' => 3,
+            'nom' => 'Bubble avec Glace',
+            'description' => 'Bubble waffle garni de glace',
+            'is_favori' => true,
+            'ordre' => 3,
+        ]);
+        Variant::create(['produit_id' => $bubbleGlace->id, 'nom' => 'Standard', 'prix' => 3000, 'stock' => 40, 'seuil_alerte' => 10, 'active' => true]);
+
+        $autreBubble = Produit::create([
+            'categorie_id' => 3,
+            'nom' => 'Autre Bubble',
+            'description' => 'Autres variétés de bubble waffle',
+            'is_favori' => false,
+            'ordre' => 4,
+        ]);
+        Variant::create(['produit_id' => $autreBubble->id, 'nom' => 'Standard', 'prix' => 0, 'stock' => 0, 'seuil_alerte' => 10, 'active' => true]);
+
+        $cornet1 = Produit::create([
+            'categorie_id' => 3,
+            'nom' => 'Cornet 1',
+            'description' => 'Cornet simple',
+            'is_favori' => false,
+            'ordre' => 5,
+        ]);
+        Variant::create(['produit_id' => $cornet1->id, 'nom' => 'Standard', 'prix' => 200, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
+
+        $cornet2 = Produit::create([
+            'categorie_id' => 3,
+            'nom' => 'Cornet 2',
+            'description' => 'Cornet premium',
+            'is_favori' => false,
+            'ordre' => 6,
+        ]);
+        Variant::create(['produit_id' => $cornet2->id, 'nom' => 'Standard', 'prix' => 300, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
+
+        $milkshake = Produit::create([
+            'categorie_id' => 3,
+            'nom' => 'Milkshake',
+            'description' => 'Milkshake onctueux',
+            'is_favori' => true,
+            'ordre' => 7,
+        ]);
+        Variant::create(['produit_id' => $milkshake->id, 'nom' => 'Standard', 'prix' => 2500, 'stock' => 30, 'seuil_alerte' => 10, 'active' => true]);
+
+        // -------------------- CATÉGORIE 4 : BOISSONS --------------------
+        
+        $eauLafi15 = Produit::create([
+            'categorie_id' => 4,
+            'nom' => 'Eau Lafi 1,5L',
+            'description' => 'Eau minérale Lafi 1,5 litre',
+            'is_favori' => false,
+            'ordre' => 1,
+        ]);
+        Variant::create(['produit_id' => $eauLafi15->id, 'nom' => '1,5L', 'prix' => 600, 'stock' => 100, 'seuil_alerte' => 20, 'active' => true]);
+
+        $eauLafi05 = Produit::create([
+            'categorie_id' => 4,
+            'nom' => 'Eau Lafi 0,5L',
+            'description' => 'Eau minérale Lafi 0,5 litre',
+            'is_favori' => true,
+            'ordre' => 2,
+        ]);
+        Variant::create(['produit_id' => $eauLafi05->id, 'nom' => '0,5L', 'prix' => 300, 'stock' => 150, 'seuil_alerte' => 30, 'active' => true]);
+
+        // ========================================
+        // MESSAGES DE CONFIRMATION
+        // ========================================
+        
         $this->command->info('✅ Base de données initialisée avec succès !');
+        $this->command->info('');
+        $this->command->info('👥 UTILISATEURS :');
         $this->command->info('📧 Admin : admin@glacier.bf / password');
         $this->command->info('📧 Caissier 1 : amina@gmail.com / password');
         $this->command->info('📧 Caissier 2 : moussa@glacier.bf / password');
+        $this->command->info('');
+        $this->command->info('🏪 PRODUITS CRÉÉS :');
+        $this->command->info('🍦 Glaces : 5 produits avec variantes');
+        $this->command->info('🍪 Cookies : 9 produits');
+        $this->command->info('🧇 Bubble Waffle : 7 produits');
+        $this->command->info('💧 Boissons : 2 produits');
     }
 }
