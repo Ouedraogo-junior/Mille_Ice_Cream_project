@@ -26,9 +26,9 @@
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
                     <p class="mt-4 text-gray-600 font-medium">{{ auth()->user()->name }}</p>
-                    @if(auth()->user()->pseudo)
-                        <p class="text-gray-500 text-sm">@{{ auth()->user()->pseudo }}</p>
-                    @endif
+                    {{-- @if(auth()->user()->pseudo)
+                        <p class="text-gray-500 text-sm">{{ auth()->user()->pseudo }}</p>
+                    @endif --}}
                 </div>
 
                 <form wire:submit.prevent="updateProfileInformation" class="space-y-6">
