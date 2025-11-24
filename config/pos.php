@@ -20,7 +20,7 @@ return [
     | Active l'impression automatique des tickets après chaque vente.
     |
     */
-    'impression_auto' => env('POS_IMPRESSION_AUTO', false),
+    'impression_auto' => env('POS_IMPRESSION_AUTO', true),
 
     /*
     |--------------------------------------------------------------------------

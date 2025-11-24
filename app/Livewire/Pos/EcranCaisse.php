@@ -357,8 +357,8 @@ public function ajouterAuPanier(int $produitId, ?int $variantId = null)
             $this->showConfirmation = true;
             $this->messageSucces = 'Vente enregistrée avec succès !';
             
+            // ✅ CORRECTION : Dispatcher APRÈS le commit
             $this->dispatch('vente-validee', venteId: $vente->id);
-
         } catch (\Exception $e) {
             DB::rollBack();
             $this->messageErreur = 'Erreur lors de la vente : ' . $e->getMessage();

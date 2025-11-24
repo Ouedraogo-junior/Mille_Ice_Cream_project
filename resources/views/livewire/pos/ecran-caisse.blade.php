@@ -83,12 +83,9 @@
                     </div>
                     
                     <div class="flex gap-3">
-                        <button wire:click="reimprimerTicket" 
-                                class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                            </svg>
-                            Réimprimer
+                        <button onclick="window.ticketPrinter.print(1, 'direct')" 
+                            class="bg-blue-500 text-white px-4 py-2 rounded">
+                                🖨️ Imprimer le ticket
                         </button>
                         <button wire:click="nouvelleVente" 
                                 class="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
@@ -744,6 +741,23 @@
                                     </span>
                                 </div>
                             </button>
+                            {{-- Dans ecran-caisse.blade.php, remplacer le bouton de test --}}
+<div class="flex gap-3">
+    <button onclick="window.ticketPrinter.print(1, 'direct')" 
+            class="bg-blue-500 text-white px-4 py-2 rounded">
+        🖨️ Test Direct (iframe)
+    </button>
+    
+    <button onclick="window.ticketPrinter.print(1, 'silent')" 
+            class="bg-purple-500 text-white px-4 py-2 rounded">
+        🖨️ Test Silent (popup)
+    </button>
+    
+    <button onclick="window.ticketPrinter.print(1, 'browser')" 
+            class="bg-green-500 text-white px-4 py-2 rounded">
+        🖨️ Test Browser (onglet)
+    </button>
+</div>
                         </div>
                     @endif
                 </div>
@@ -939,16 +953,57 @@
 @endpush
 @script
 <script>
-// Gestion du mode offline
+// ==========================================
+// IMPRESSION AUTOMATIQUE APRÈS VALIDATION
+// ==========================================
+
+// Écouter l'événement de validation de vente
+$wire.on('vente-validee', async (event) => {
+    console.log('🎉 Événement vente-validee reçu:', event);
+    
+    // Vérifier que l'ID de vente existe
+    if (!event.venteId && !event[0]?.venteId) {
+        console.error('❌ ID de vente manquant dans l\'événement');
+        return;
+    }
+    
+    const venteId = event.venteId || event[0]?.venteId;
+    console.log(`🖨️ Démarrage impression pour vente #${venteId}`);
+    
+    // Attendre 500ms pour que le modal s'affiche
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    try {
+        // Essayer l'impression directe (iframe)
+        console.log('📋 Tentative impression directe...');
+        const result = await window.ticketPrinter.print(venteId, 'direct');
+        
+        if (result.success) {
+            console.log('✅ Impression directe réussie');
+        } else {
+            console.warn('⚠️ Impression directe échouée, essai méthode silencieuse...');
+            await window.ticketPrinter.print(venteId, 'silent');
+        }
+        
+    } catch (error) {
+        console.error('❌ Erreur impression automatique:', error);
+        console.log('ℹ️ Fallback : Ouverture dans un nouvel onglet...');
+        
+        // En dernier recours, ouvrir dans un onglet
+        await window.ticketPrinter.print(venteId, 'browser');
+    }
+});
+
+// ==========================================
+// GESTION DU MODE OFFLINE (ton code existant)
+// ==========================================
 let isOfflineMode = !navigator.onLine;
 
-// Vérifier le statut
 function checkOfflineStatus() {
     isOfflineMode = !navigator.onLine;
     $wire.call('updateOfflineStatus', isOfflineMode);
 }
 
-// Écouter les changements
 window.addEventListener('online', () => {
     isOfflineMode = false;
     $wire.call('updateOfflineStatus', false);
@@ -961,7 +1016,6 @@ window.addEventListener('offline', () => {
     console.log('🔴 Mode hors ligne');
 });
 
-// Vérifier au chargement
 checkOfflineStatus();
 
 // Écouter la sauvegarde offline
@@ -975,7 +1029,6 @@ $wire.on('save-offline-vente', async (event) => {
         const id = await window.offlineSync.enregistrerVentePending(event.venteData);
         console.log('✅ Vente sauvegardée localement:', id);
         
-        // Vérifier le nombre de ventes en attente
         const ventes = await window.offlineSync.getVentesPending();
         $wire.set('ventesPendingCount', ventes.length);
         
@@ -985,162 +1038,107 @@ $wire.on('save-offline-vente', async (event) => {
     }
 });
 
-// Écouter la synchronisation réussie
 $wire.on('ventes-synchronisees', () => {
     $wire.call('$refresh');
 });
-    // Écouter l'événement de vente validée pour impression
-    $wire.on('vente-validee', (event) => {
-        console.log('Vente validée, ID:', event.venteId);
-        
-        // Animation de succès (si vous avez la lib confetti)
-        // confetti({
-        //     particleCount: 100,
-        //     spread: 70,
-        //     origin: { y: 0.6 }
-        // });
-        
-        try {
-            // Imprimer automatiquement
-            await window.ticketPrinter.print(event.venteId, 'browser');
+
+// ==========================================
+// ANIMATIONS ET HORLOGE (ton code existant)
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const elements = document.querySelectorAll('[class*="animate"]');
+    elements.forEach((el, index) => {
+        el.style.animationDelay = `${index * 0.05}s`;
+    });
+});
+
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('fr-FR', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    const timeElement = document.getElementById('current-time');
+    if (timeElement) {
+        timeElement.textContent = timeString;
+    }
+}
+
+updateTime();
+setInterval(updateTime, 1000);
+
+// Indicateur offline (ton code Alpine.js existant)
+function offlineIndicator() {
+    return {
+        isOnline: navigator.onLine,
+        isSyncing: false,
+        pendingCount: 0,
+        showToast: false,
+        toastMessage: '',
+
+        init() {
+            window.addEventListener('online', () => this.handleOnline());
+            window.addEventListener('offline', () => this.handleOffline());
+            this.checkPendingVentes();
+            setInterval(() => this.checkPendingVentes(), 30000);
+        },
+
+        async handleOnline() {
+            this.isOnline = true;
+            this.showNotification('Connexion rétablie ! Synchronisation en cours...');
+            setTimeout(() => this.syncNow(), 2000);
+        },
+
+        handleOffline() {
+            this.isOnline = false;
+            this.showNotification('Mode hors ligne activé. Les ventes seront synchronisées plus tard.');
+        },
+
+        async checkPendingVentes() {
+            if (!window.offlineSync) return;
             
-            // Ou demander à l'utilisateur
-            // const method = confirm('Utiliser une imprimante Bluetooth ?') ? 'bluetooth' : 'browser';
-            // await window.ticketPrinter.print(event.venteId, method);
-        } catch (error) {
-            console.error('Erreur impression:', error);
-            alert('Erreur lors de l\'impression du ticket');
-        }
-    });
-
-    // Écouter l'événement de réimpression
-    $wire.on('reimprimer-ticket', (event) => {
-        console.log('Réimprimer ticket, ID:', event.venteId);
-        try {
-            await window.ticketPrinter.print(event.venteId);
-        } catch (error) {
-            console.error('Erreur réimpression:', error);
-            alert('Erreur lors de la réimpression');
-        }
-    });
-
-    // Son et animation de confirmation lors de l'ajout au panier
-    $wire.on('produit-ajoute', () => {
-        // Animation subtile
-        const button = event.target.closest('button');
-        if (button) {
-            button.classList.add('scale-95');
-            setTimeout(() => button.classList.remove('scale-95'), 100);
-        }
-        
-        // Optionnel: jouer un son
-        // new Audio('/sounds/beep.mp3').play();
-    });
-    
-    // Animation au chargement de la page
-    document.addEventListener('DOMContentLoaded', () => {
-        const elements = document.querySelectorAll('[class*="animate"]');
-        elements.forEach((el, index) => {
-            el.style.animationDelay = `${index * 0.05}s`;
-        });
-    });
-
-    // Horloge en temps réel
-    function updateTime() {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('fr-FR', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        const timeElement = document.getElementById('current-time');
-        if (timeElement) {
-            timeElement.textContent = timeString;
-        }
-    }
-    
-    updateTime();
-    setInterval(updateTime, 1000);
-
-    // Fonction Alpine.js pour l'indicateur offline
-    function offlineIndicator() {
-        return {
-            isOnline: navigator.onLine,
-            isSyncing: false,
-            pendingCount: 0,
-            showToast: false,
-            toastMessage: '',
-
-            init() {
-                // Écouter les changements de connexion
-                window.addEventListener('online', () => this.handleOnline());
-                window.addEventListener('offline', () => this.handleOffline());
-
-                // Vérifier les ventes en attente
-                this.checkPendingVentes();
-                
-                // Vérifier périodiquement
-                setInterval(() => this.checkPendingVentes(), 30000); // Toutes les 30s
-            },
-
-            async handleOnline() {
-                this.isOnline = true;
-                this.showNotification('Connexion rétablie ! Synchronisation en cours...');
-                
-                // Attendre un peu pour stabiliser la connexion
-                setTimeout(() => this.syncNow(), 2000);
-            },
-
-            handleOffline() {
-                this.isOnline = false;
-                this.showNotification('Mode hors ligne activé. Les ventes seront synchronisées plus tard.');
-            },
-
-            async checkPendingVentes() {
-                if (!window.offlineSync) return;
-                
-                try {
-                    const ventes = await window.offlineSync.getVentesPending();
-                    this.pendingCount = ventes.length;
-                } catch (error) {
-                    console.error('Erreur check pending:', error);
-                }
-            },
-
-            async syncNow() {
-                if (!this.isOnline || this.isSyncing || !window.offlineSync) return;
-
-                this.isSyncing = true;
-                
-                try {
-                    const result = await window.offlineSync.synchroniserVentes();
-                    
-                    if (result.success && result.synced > 0) {
-                        this.showNotification(`${result.synced} vente(s) synchronisée(s) avec succès !`);
-                        await this.checkPendingVentes();
-                        
-                        // Recharger les données
-                        if (window.Livewire) {
-                            window.Livewire.dispatch('ventes-synchronisees');
-                        }
-                    }
-                } catch (error) {
-                    console.error('Erreur sync:', error);
-                    this.showNotification('Erreur lors de la synchronisation');
-                } finally {
-                    this.isSyncing = false;
-                }
-            },
-
-            showNotification(message) {
-                this.toastMessage = message;
-                this.showToast = true;
-                setTimeout(() => {
-                    this.showToast = false;
-                }, 4000);
+            try {
+                const ventes = await window.offlineSync.getVentesPending();
+                this.pendingCount = ventes.length;
+            } catch (error) {
+                console.error('Erreur check pending:', error);
             }
+        },
+
+        async syncNow() {
+            if (!this.isOnline || this.isSyncing || !window.offlineSync) return;
+
+            this.isSyncing = true;
+            
+            try {
+                const result = await window.offlineSync.synchroniserVentes();
+                
+                if (result.success && result.synced > 0) {
+                    this.showNotification(`${result.synced} vente(s) synchronisée(s) avec succès !`);
+                    await this.checkPendingVentes();
+                    
+                    if (window.Livewire) {
+                        window.Livewire.dispatch('ventes-synchronisees');
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur sync:', error);
+                this.showNotification('Erreur lors de la synchronisation');
+            } finally {
+                this.isSyncing = false;
+            }
+        },
+
+        showNotification(message) {
+            this.toastMessage = message;
+            this.showToast = true;
+            setTimeout(() => {
+                this.showToast = false;
+            }, 4000);
         }
     }
+}
 </script>
 @endscript
 

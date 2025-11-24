@@ -63,7 +63,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // ==================== ROUTES TICKETS ====================
-Route::middleware(['auth'])->prefix('tickets')->group(function () {
+Route::middleware(['auth'])->prefix('ticket')->group(function () {
     // Afficher le ticket en HTML (impression navigateur)
     Route::get('/{vente}/imprimer', [TicketController::class, 'afficher'])
         ->name('ticket.imprimer');
