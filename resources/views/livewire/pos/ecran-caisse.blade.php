@@ -109,7 +109,9 @@
             <div class="flex items-center justify-between gap-6">
                 <div class="flex items-center gap-3" x-data="{ open: false }">
     <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-        <span class="text-2xl">🍦</span>
+        <img src="{{ asset('images/mila.png') }}" 
+                         alt="Mila Ice Cream Logo" 
+                         class="w-16 h-16 sm:w-20 sm:h-20 object-contain">
     </div>
     <div class="relative">
         <button @click="open = !open" class="flex items-center gap-2 group">
