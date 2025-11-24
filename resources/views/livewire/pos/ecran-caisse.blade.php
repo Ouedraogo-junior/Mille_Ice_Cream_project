@@ -323,214 +323,128 @@
     <div class="absolute right-0 top-0 bottom-2 w-12 bg-gradient-to-l from-slate-900 to-transparent pointer-events-none"></div>
 </div>
 
-{{-- Grille de produits avec images --}}
+{{-- Grille de produits avec variantes --}}
 <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 mt-6">
     @forelse($this->produits as $produit)
-        @php $variant = $produit->variants->first(); @endphp
-        <button wire:click="ajouterAuPanier({{ $produit->id }})"
-                wire:loading.attr="disabled"
-                wire:target="ajouterAuPanier({{ $produit->id }})"
-                class="group relative bg-white/10 backdrop-blur-md rounded-2xl p-5 hover:bg-white/20 transition-all duration-300 border border-white/20 hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/20 transform hover:-translate-y-2 {{ (optional($variant)->stock !== null && optional($variant)->stock <= 0) ? 'opacity-50 cursor-not-allowed' : '' }}">
-            
-            {{-- Effet de brillance au survol --}}
-            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
-{{-- Badge stock amélioré avec gestion stock illimité --}}
-@php
-    $gererStock = $variant->gerer_stock ?? false;
-    $seuilAlerte = $variant->seuil_alerte ?? 10; // Valeur par défaut si null
-@endphp
+        @foreach($produit->variants as $variant)
+            <button wire:click="ajouterAuPanier({{ $produit->id }}, {{ $variant->id }})"
+                    wire:loading.attr="disabled"
+                    wire:target="ajouterAuPanier({{ $produit->id }}, {{ $variant->id }})"
+                    class="group relative bg-white/10 backdrop-blur-md rounded-2xl p-5 hover:bg-white/20 transition-all duration-300 border border-white/20 hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/20 transform hover:-translate-y-2 {{ ($variant->gerer_stock && $variant->stock <= 0) ? 'opacity-50 cursor-not-allowed' : '' }}">
+                
+                {{-- Effet de brillance au survol --}}
+                <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {{-- Badge variante (en haut à gauche) --}}
+                <span class="absolute top-3 left-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 flex items-center gap-1">
+                    <i class="fas fa-tag"></i>
+                    {{ $variant->nom }}
+                </span>
 
-@if($gererStock)
-    {{-- Stock géré : afficher les badges selon le niveau --}}
-    @if($variant->stock <= 0)
-        {{-- Stock épuisé --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 flex items-center gap-1">
-            <i class="fas fa-ban"></i>
-            Épuisé
-        </span>
-    @elseif($variant->stock <= $seuilAlerte)
-        {{-- Stock faible (alerte) --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 animate-pulse flex items-center gap-1">
-            <i class="fas fa-exclamation-triangle"></i>
-            {{ $variant->stock }} restant{{ $variant->stock > 1 ? 's' : '' }}
-        </span>
-    @elseif($variant->stock <= ($seuilAlerte * 2))
-        {{-- Stock moyen --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 flex items-center gap-1">
-            <i class="fas fa-box"></i>
-            {{ $variant->stock }} en stock
-        </span>
-    @else
-        {{-- Stock bon --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 flex items-center gap-1">
-            <i class="fas fa-check-circle"></i>
-            {{ $variant->stock }} disponible{{ $variant->stock > 1 ? 's' : '' }}
-        </span>
-    @endif
-{{-- @else
-    
-    <span class="absolute top-3 right-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 flex items-center gap-1.5">
-        <i class="fas fa-infinity"></i>
-        Ilimité
-    </span> --}}
-@endif
+                {{-- Badge stock (en haut à droite) --}}
+                @php
+                    $gererStock = $variant->gerer_stock ?? false;
+                    $seuilAlerte = $variant->seuil_alerte ?? 10;
+                @endphp
 
-            {{-- Image produit avec gestion d'erreur --}}
-            <div class="relative aspect-square bg-gradient-to-br from-purple-400 via-pink-400 to-purple-500 rounded-xl mb-4 flex items-center justify-center text-5xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-shadow duration-300">
-                @if($produit->image)
-                    <img src="{{ asset('storage/' . $produit->image) }}" 
-                         alt="{{ $produit->nom }}" 
-                         class="w-full h-full object-cover rounded-xl transform group-hover:scale-110 transition-transform duration-500"
-                         onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    {{-- Image par défaut si erreur de chargement --}}
-                    <div class="hidden w-full h-full items-center justify-center transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
-                        <span class="text-6xl">
-                            @if($produit->categorie)
-                                @switch(strtolower($produit->categorie->nom))
-                                    @case('glace')
-                                    @case('glaces')
-                                        🍦
-                                        @break
-                                    @case('boisson')
-                                    @case('boissons')
-                                        🥤
-                                        @break
-                                    @case('dessert')
-                                    @case('desserts')
-                                        🍰
-                                        @break
-                                    @case('snack')
-                                    @case('snacks')
-                                        🍿
-                                        @break
-                                    @default
-                                        🍽️
-                                @endswitch
-                            @else
-                                🍽️
-                            @endif
+                @if($gererStock)
+                    @if($variant->stock <= 0)
+                        <span class="absolute top-3 right-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
+                            <i class="fas fa-ban"></i> Épuisé
                         </span>
-                    </div>
-                @else
-                    {{-- Pas d'image : afficher emoji par défaut --}}
-                    <span class="transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500 text-6xl">
-                        @if($produit->categorie)
-                            @switch(strtolower($produit->categorie->nom))
-                                @case('glace')
-                                @case('glaces')
-                                    🍦
-                                    @break
-                                @case('boisson')
-                                @case('boissons')
-                                    🥤
-                                    @break
-                                @case('dessert')
-                                @case('desserts')
-                                    🍰
-                                    @break
-                                @case('snack')
-                                @case('snacks')
-                                    🍿
-                                    @break
-                                @default
-                                    🍽️
-                            @endswitch
-                        @else
-                            🍽️
-                        @endif
-                    </span>
+                    @elseif($variant->stock <= $seuilAlerte)
+                        <span class="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 animate-pulse">
+                            <i class="fas fa-exclamation-triangle"></i> {{ $variant->stock }}
+                        </span>
+                    @endif
                 @endif
-                <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
 
-           {{-- Infos produit --}}
-<div class="relative z-10">
-    <h3 class="font-bold text-base text-white mb-2 group-hover:text-purple-300 transition line-clamp-2">{{ $produit->nom }}</h3>
-    <div class="flex items-center justify-between">
-        <p class="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">{{ number_format(optional($variant)->prix ?? 0, 0, ',', ' ') }}</p>
-        <span class="text-xs text-purple-300 font-semibold">FCFA</span>
-    </div>
-    
-    {{-- AJOUTE CETTE NOUVELLE SECTION ICI --}}
-    {{-- Barre de stock visuelle --}}
-{{-- Affichage du stock pour une variante de produit --}}
-@php
-    $gererStock = $variant->gerer_stock ?? false;
-    $seuilAlerte = $variant->seuil_alerte ?? 10; // Valeur par défaut si null
-@endphp
-
-@if($gererStock)
-    {{-- Stock géré : afficher le stock avec barre de progression --}}
-    <div class="mt-3 space-y-1">
-        <div class="flex items-center justify-between text-xs">
-            <span class="text-purple-300 font-medium flex items-center gap-1">
-                <i class="fas fa-box text-xs"></i>
-                Stock
-            </span>
-            <span class="font-bold {{ $variant->stock == 0 ? 'text-red-400 animate-pulse' : ($variant->stock <= $seuilAlerte ? 'text-red-400 animate-pulse' : ($variant->stock <= ($seuilAlerte * 2) ? 'text-yellow-400' : 'text-emerald-400')) }}">
-                {{ $variant->stock }}
-            </span>
-        </div>
-        
-        {{-- Barre de progression --}}
-        @php
-            // Calculer le pourcentage basé sur 3x le seuil d'alerte comme "bon stock"
-            $maxStock = $seuilAlerte * 3; // Ex: seuil = 5 → max = 15 pour 100%
-            $percentage = $maxStock > 0 ? min(100, ($variant->stock / $maxStock) * 100) : 0;
-        @endphp
-        <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-500 {{ $variant->stock == 0 ? 'bg-gray-500' : ($variant->stock <= $seuilAlerte ? 'bg-gradient-to-r from-red-500 to-rose-600' : ($variant->stock <= ($seuilAlerte * 2) ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-emerald-500 to-green-600')) }}"
-                 style="width: {{ $percentage }}%">
-            </div>
-        </div>
-        
-        {{-- Alerte stock épuisé --}}
-        @if($variant->stock == 0)
-            <div class="flex items-center gap-1 text-xs text-red-400 font-semibold mt-1">
-                <i class="fas fa-ban"></i>
-                <span>Épuisé</span>
-            </div>
-        @elseif($variant->stock <= $seuilAlerte)
-            <div class="flex items-center gap-1 text-xs text-orange-400 font-semibold mt-1 animate-pulse">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>Stock faible (seuil: {{ $seuilAlerte }})</span>
-            </div>
-        @endif
-    </div>
-@else
-    {{-- Stock illimité : afficher l'icône infini --}}
-    <div class="mt-3">
-        <div class="flex items-center justify-between px-3 py-2 bg-green-500/20 rounded-lg border border-green-500/30">
-            <span class="text-green-300 font-medium flex items-center gap-2 text-xs">
-                <i class="fas fa-infinity text-sm"></i>
-                Disponible
-            </span>
-            <span class="text-green-400 font-bold text-xs">
-                <i class="fas fa-check-circle"></i>
-            </span>
-        </div>
-    </div>
-@endif
-
-            {{-- Loading indicator --}}
-            <div wire:loading wire:target="ajouterAuPanier({{ $produit->id }})" 
-                 class="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
-                <div class="relative">
-                    <div class="w-12 h-12 border-4 border-purple-400/30 border-t-purple-400 rounded-full animate-spin"></div>
-                    <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-pink-400 rounded-full animate-spin" style="animation-duration: 1.5s; animation-direction: reverse;"></div>
+                {{-- Image produit --}}
+                <div class="relative aspect-square bg-gradient-to-br from-purple-400 via-pink-400 to-purple-500 rounded-xl mb-4 flex items-center justify-center text-5xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mt-6">
+                    @if($produit->image)
+                        <img src="{{ asset('storage/' . $produit->image) }}" 
+                             alt="{{ $produit->nom }}" 
+                             class="w-full h-full object-cover rounded-xl transform group-hover:scale-110 transition-transform duration-500"
+                             onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="hidden w-full h-full items-center justify-center">
+                            <span class="text-6xl">🍦</span>
+                        </div>
+                    @else
+                        <span class="text-6xl">🍦</span>
+                    @endif
                 </div>
-            </div>
 
-            {{-- Bouton d'ajout au survol --}}
-            <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                <div class="bg-gradient-to-r from-emerald-500 to-green-600 p-2 rounded-lg shadow-lg">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                    </svg>
+                {{-- Infos produit + variante --}}
+                <div class="relative z-10">
+                    <h3 class="font-bold text-base text-white mb-1 group-hover:text-purple-300 transition line-clamp-1">
+                        {{ $produit->nom }}
+                    </h3>
+                    
+                    {{-- Prix avec étiquette variante --}}
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <p class="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+                                {{ number_format($variant->prix, 0, ',', ' ') }}
+                            </p>
+                            <span class="text-xs text-purple-400 font-medium">{{ $variant->nom }}</span>
+                        </div>
+                        <span class="text-xs text-purple-300 font-semibold">FCFA</span>
+                    </div>
+
+                    {{-- Barre de stock --}}
+                    @if($gererStock)
+                        <div class="mt-3 space-y-1">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-purple-300 font-medium flex items-center gap-1">
+                                    <i class="fas fa-box text-xs"></i> Stock
+                                </span>
+                                <span class="font-bold {{ $variant->stock <= 0 ? 'text-red-400' : ($variant->stock <= $seuilAlerte ? 'text-orange-400 animate-pulse' : 'text-emerald-400') }}">
+                                    {{ $variant->stock }}
+                                </span>
+                            </div>
+                            
+                            @php
+                                $maxStock = $seuilAlerte * 3;
+                                $percentage = $maxStock > 0 ? min(100, ($variant->stock / $maxStock) * 100) : 0;
+                            @endphp
+                            <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-500 {{ $variant->stock <= 0 ? 'bg-gray-500' : ($variant->stock <= $seuilAlerte ? 'bg-gradient-to-r from-red-500 to-rose-600' : 'bg-gradient-to-r from-emerald-500 to-green-600') }}"
+                                     style="width: {{ $percentage }}%">
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="mt-3">
+                            <div class="flex items-center justify-between px-3 py-2 bg-green-500/20 rounded-lg border border-green-500/30">
+                                <span class="text-green-300 font-medium flex items-center gap-2 text-xs">
+                                    <i class="fas fa-infinity text-sm"></i> Disponible
+                                </span>
+                                <span class="text-green-400 font-bold text-xs">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                            </div>
+                        </div>
+                    @endif
                 </div>
-            </div>
-        </button>
+
+                {{-- Loading indicator --}}
+                <div wire:loading wire:target="ajouterAuPanier({{ $produit->id }}, {{ $variant->id }})" 
+                     class="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
+                    <div class="relative">
+                        <div class="w-12 h-12 border-4 border-purple-400/30 border-t-purple-400 rounded-full animate-spin"></div>
+                    </div>
+                </div>
+
+                {{-- Bouton d'ajout --}}
+                <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                    <div class="bg-gradient-to-r from-emerald-500 to-green-600 p-2 rounded-lg shadow-lg">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                </div>
+            </button>
+        @endforeach
     @empty
         <div class="col-span-full text-center py-20">
             <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-12 border border-white/10">

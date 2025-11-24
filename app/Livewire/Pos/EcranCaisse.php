@@ -116,58 +116,65 @@ class EcranCaisse extends Component
     }
 
     /**
-     * Ajouter un produit au panier
-     */
-    public function ajouterAuPanier(int $produitId)
-    {
-        $produit = Produit::with(['variants' => function($q) { $q->where('active', true); }])->find($produitId);
+ * Ajouter un produit au panier avec sélection de variante
+ */
+public function ajouterAuPanier(int $produitId, ?int $variantId = null)
+{
+    $produit = Produit::with(['variants' => function($q) { 
+        $q->where('active', true); 
+    }])->find($produitId);
 
-        if (!$produit || $produit->variants->isEmpty()) {
-            $this->messageErreur = 'Produit non disponible';
-            return;
-        }
-
-        $variant = $produit->variants->first();
-        if (!$variant || !$variant->active) {
-            $this->messageErreur = 'Aucune variante active pour ce produit';
-            return;
-        }
-
-        // Vérifier le stock UNIQUEMENT si géré
-        $gererStock = $variant->gerer_stock ?? false;
-        
-        if ($gererStock && $variant->stock <= 0) {
-            $this->messageErreur = 'Stock épuisé pour ' . $produit->nom;
-            return;
-        }
-
-        // Si le produit existe déjà dans le panier
-        $cle = 'produit_' . $produitId;
-        
-        if (isset($this->panier[$cle])) {
-            // Vérifier si on peut ajouter (stock) - UNIQUEMENT si géré
-            if ($gererStock && $this->panier[$cle]['quantite'] >= $variant->stock) {
-                $this->messageErreur = 'Stock insuffisant pour ' . $produit->nom;
-                return;
-            }
-            $this->panier[$cle]['quantite']++;
-        } else {
-            // Ajouter nouveau produit
-            $this->panier[$cle] = [
-                'id' => $produit->id,
-                'nom' => $produit->nom,
-                'prix' => $variant->prix,
-                'quantite' => 1,
-                'stock' => $gererStock ? $variant->stock : null,
-                'gerer_stock' => $gererStock,
-                'image' => $produit->image,
-                'variant_id' => $variant->id,
-            ];
-        }
-
-        $this->messageSucces = $produit->nom . ' ajouté au panier';
-        $this->dispatch('produit-ajoute');
+    if (!$produit || $produit->variants->isEmpty()) {
+        $this->messageErreur = 'Produit non disponible';
+        return;
     }
+
+    // Si variantId fourni, utiliser cette variante, sinon prendre la première
+    $variant = $variantId 
+        ? $produit->variants->find($variantId) 
+        : $produit->variants->first();
+
+    if (!$variant || !$variant->active) {
+        $this->messageErreur = 'Variante non disponible';
+        return;
+    }
+
+    // Vérifier le stock UNIQUEMENT si géré
+    $gererStock = $variant->gerer_stock ?? false;
+    
+    if ($gererStock && $variant->stock <= 0) {
+        $this->messageErreur = 'Stock épuisé pour ' . $produit->nom . ' (' . $variant->nom . ')';
+        return;
+    }
+
+    // Clé unique incluant la variante
+    $cle = 'produit_' . $produitId . '_variant_' . $variant->id;
+    
+    if (isset($this->panier[$cle])) {
+        // Vérifier le stock
+        if ($gererStock && $this->panier[$cle]['quantite'] >= $variant->stock) {
+            $this->messageErreur = 'Stock insuffisant pour ' . $produit->nom . ' (' . $variant->nom . ')';
+            return;
+        }
+        $this->panier[$cle]['quantite']++;
+    } else {
+        // Ajouter nouveau produit avec variante
+        $this->panier[$cle] = [
+            'id' => $produit->id,
+            'nom' => $produit->nom,
+            'variant_nom' => $variant->nom,  // ✅ NOM DE LA VARIANTE
+            'prix' => $variant->prix,
+            'quantite' => 1,
+            'stock' => $gererStock ? $variant->stock : null,
+            'gerer_stock' => $gererStock,
+            'image' => $produit->image,
+            'variant_id' => $variant->id,
+        ];
+    }
+
+    $this->messageSucces = $produit->nom . ' (' . $variant->nom . ') ajouté au panier';
+    $this->dispatch('produit-ajoute');
+}
 
     /**
      * Modifier la quantité d'un article
