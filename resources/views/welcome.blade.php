@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <title>Glacier - Système de Gestion Premium</title>
+    <title>Milla Ice Cream - Système de Gestion Premium</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800|plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,7 +19,7 @@
                     <!-- Option 1: Utilisez votre logo personnalisé -->
                     <img src="{{ asset('images/logo.jpg') }}" alt="Glacier Pro Logo" class="logo-image">
                 </div>
-                <span class="logo-text">Glacier</span>
+                <span class="logo-text">Milla Ice Cream</span>
             </div>
         
         <nav class="nav-links">
@@ -370,7 +370,7 @@
                 </div>
                 <h3>Visitez-nous</h3>
                 <p class="contact-info">
-                    Secteur 15, Avenue Kwame N'Krumah<br>
+                    Secteur 15, Karpala<br>
                     Ouagadougou, Burkina Faso<br>
                     BP 1234
                 </p>
@@ -417,9 +417,12 @@
     <!-- Footer -->
     <footer>
         <div class="footer-content">
-            <div class="logo-container" style="justify-content: center; margin-bottom: 2rem;">
-                <div class="logo-icon">🍦</div>
-                <span class="logo-text">Glacier Pro</span>
+            <div class="logo-container">
+                <div class="logo-wrapper">
+                    <!-- Option 1: Utilisez votre logo personnalisé -->
+                    <img src="{{ asset('images/logo.jpg') }}" alt="Glacier Pro Logo" class="logo-image">
+                </div>
+                <span class="logo-text">Milla Ice Cream</span>
             </div>
 
             <div class="footer-links">
@@ -432,12 +435,12 @@
             </div>
 
             <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                <p>&copy; 2024 Glacier Pro - Système de Gestion Premium</p>
+                <p>&copy; {{'Y'}} Milla Ice Cream - Système de Gestion Premium</p>
                 <p style="margin-top: 0.5rem; font-size: 0.9rem;">
                     Développé avec <i class="fas fa-heart" style="color: #f43f5e;"></i> au Burkina Faso
                 </p>
                 <p style="margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.6;">
-                    Propulsé par Laravel 12 & Livewire
+                    Développé par Junior OUEDRAOGO & Josias DJIOLGOU
                 </p>
             </div>
         </div>

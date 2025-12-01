@@ -1,8 +1,10 @@
 {{-- resources/views/livewire/admin/produits/partials/product-card.blade.php --}}
 {{-- La variable $produit est passée à l'appelant --}}
 @php
-    // Vérifier si toutes les variantes ont un stock épuisé (stock = 0)
-    $stockEpuise = $produit->variants->every(fn($v) => $v->stock == 0);
+    // Vérifier si toutes les variantes GÉRÉES ont un stock épuisé (stock = 0)
+    // Les variantes non gérées (stock illimité) ne comptent pas comme épuisées
+    $variantesGerees = $produit->variants->filter(fn($v) => $v->gerer_stock ?? false);
+    $stockEpuise = $variantesGerees->isNotEmpty() && $variantesGerees->every(fn($v) => $v->stock == 0);
 @endphp
 
 <div wire:key="product-{{ $produit->id }}" class="group bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl hover:border-cyan-300 transition-all duration-300 transform hover:-translate-y-1 {{ $stockEpuise ? 'opacity-50 grayscale' : '' }}">
@@ -40,24 +42,41 @@
 
         <div class="space-y-2 mb-4">
             @foreach($produit->variants->take(2) as $v)
-                <div class="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-3 border border-cyan-100 {{ $v->stock == 0 ? 'opacity-60' : '' }}">
+                @php
+                    $gererStock = $v->gerer_stock ?? false;
+                    $stockFaible = $gererStock && $v->stock <= ($v->seuil_alerte ?? 10);
+                    $stockEpuiseVariant = $gererStock && $v->stock == 0;
+                @endphp
+                
+                <div class="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-3 border border-cyan-100 {{ $stockEpuiseVariant ? 'opacity-60' : '' }}">
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-sm font-semibold text-gray-700">{{ $v->nom }}</span>
                         <span class="text-lg font-bold text-cyan-600">{{ number_format($v->prix) }} F</span>
                     </div>
+                    
                     <div class="flex items-center gap-2 text-xs">
-                        <i class="fas fa-box text-gray-400"></i>
-                        <span class="text-gray-600">Stock:</span>
-                        <span class="{{ $v->stock == 0 ? 'text-red-700 font-bold' : ($v->stock <= $v->seuil_alerte ? 'text-red-500 font-bold' : 'text-emerald-600 font-semibold') }}">
-                            {{ $v->stock }}
-                        </span>
-                        @if($v->stock == 0)
-                            <span class="ml-auto px-2 py-0.5 bg-red-600 text-white rounded-full text-xs font-bold">
-                                <i class="fas fa-ban mr-1"></i>Épuisé
+                        @if($gererStock)
+                            {{-- Stock géré : afficher le stock numérique --}}
+                            <i class="fas fa-box text-gray-400"></i>
+                            <span class="text-gray-600">Stock:</span>
+                            <span class="{{ $stockEpuiseVariant ? 'text-red-700 font-bold' : ($stockFaible ? 'text-orange-500 font-bold' : 'text-emerald-600 font-semibold') }}">
+                                {{ $v->stock }}
                             </span>
-                        @elseif($v->stock <= $v->seuil_alerte)
-                            <span class="ml-auto px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs font-semibold animate-pulse">
-                                <i class="fas fa-exclamation-triangle mr-1"></i>Faible
+                            @if($stockEpuiseVariant)
+                                <span class="ml-auto px-2 py-0.5 bg-red-600 text-white rounded-full text-xs font-bold">
+                                    <i class="fas fa-ban mr-1"></i>Épuisé
+                                </span>
+                            @elseif($stockFaible)
+                                <span class="ml-auto px-2 py-0.5 bg-orange-100 text-orange-600 rounded-full text-xs font-semibold animate-pulse">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>Faible
+                                </span>
+                            @endif
+                        @else
+                            {{-- Stock non géré : afficher "illimité" --}}
+                            <i class="fas fa-infinity text-green-500"></i>
+                            <span class="text-green-600 font-semibold">Stock illimité</span>
+                            <span class="ml-auto px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                                <i class="fas fa-check-circle mr-1"></i>Disponible
                             </span>
                         @endif
                     </div>

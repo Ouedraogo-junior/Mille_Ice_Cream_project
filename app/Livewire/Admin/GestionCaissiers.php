@@ -97,4 +97,22 @@ class GestionCaissiers extends Component
         $this->showForm = false;
         $this->resetForm();
     }
+
+    public function supprimer($id)
+    {
+        $user = User::findOrFail($id);
+
+        // Optionnel : sécurité supplémentaire
+        if ($user->role !== 'caissier') {
+            $this->dispatch('toast', message: 'Action non autorisée.', type: 'error');
+            return;
+        }
+
+        $user->delete(); // Soft delete → plus de violation de contrainte !
+
+        // Recharge la liste (les soft-deleted sont automatiquement exclus)
+        $this->caissiers = User::where('role', 'caissier')->get();
+
+        $this->dispatch('toast', message: 'Caissier archivé avec succès.', type: 'success');
+    }
 }
