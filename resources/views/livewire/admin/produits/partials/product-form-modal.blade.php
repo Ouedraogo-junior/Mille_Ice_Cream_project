@@ -166,6 +166,7 @@
                                         </label>
                                         <input type="number"
                                                wire:model="variants.{{ $index }}.stock"
+                                               wire:model.live="variants.{{ $index }}.stock"
                                                placeholder="Laisser vide pour stock illimité"
                                                min="0"
                                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
@@ -179,6 +180,7 @@
                                     </div>
                                     <div>
                                         <label class="text-xs font-semibold text-gray-600 mb-1 block">
+                                        <label class="text-xs font-semibold {{ (empty($variant['stock']) || $variant['stock'] === '') ? 'text-gray-400' : 'text-gray-600' }} mb-1 block">
                                             <i class="fas fa-exclamation-triangle text-orange-500 mr-1"></i>Seuil d'alerte
                                             <span class="text-gray-400 font-normal italic">(si stock géré)</span>
                                         </label>
@@ -189,6 +191,11 @@
                                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                                                @if(empty($variant['stock']) || $variant['stock'] === '') disabled @endif>
                                         <p class="text-xs text-orange-600 mt-1">Alerte quand stock ≤ ce seuil</p>
+                                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 {{ (empty($variant['stock']) || $variant['stock'] === '') ? 'bg-gray-100 cursor-not-allowed' : '' }}"
+                                               @if(empty($variant['stock']) || $variant['stock'] === '') disabled @endif>
+                                        <p class="text-xs {{ (empty($variant['stock']) || $variant['stock'] === '') ? 'text-gray-400' : 'text-orange-600' }} mt-1">
+                                            Alerte quand stock ≤ ce seuil
+                                        </p>
                                     </div>
                                 </div>
                             </div>

@@ -83,12 +83,9 @@
                     </div>
                     
                     <div class="flex gap-3">
-                        <button wire:click="reimprimerTicket" 
-                                class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                            </svg>
-                            Réimprimer
+                        <button onclick="window.ticketPrinter.print(1, 'direct')" 
+                            class="bg-blue-500 text-white px-4 py-2 rounded">
+                                🖨️ Imprimer le ticket
                         </button>
                         <button wire:click="nouvelleVente" 
                                 class="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-4 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
@@ -109,7 +106,9 @@
             <div class="flex items-center justify-between gap-6">
                 <div class="flex items-center gap-3" x-data="{ open: false }">
     <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-        <span class="text-2xl">🍦</span>
+        <img src="{{ asset('images/mila.png') }}" 
+                         alt="Mila Ice Cream Logo" 
+                         class="w-16 h-16 sm:w-20 sm:h-20 object-contain">
     </div>
     <div class="relative">
         <button @click="open = !open" class="flex items-center gap-2 group">
@@ -323,167 +322,136 @@
     <div class="absolute right-0 top-0 bottom-2 w-12 bg-gradient-to-l from-slate-900 to-transparent pointer-events-none"></div>
 </div>
 
-{{-- Grille de produits avec images --}}
+{{-- Grille de produits avec variantes --}}
 <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 mt-6">
     @forelse($this->produits as $produit)
-        @php $variant = $produit->variants->first(); @endphp
-        <button wire:click="ajouterAuPanier({{ $produit->id }})"
-                wire:loading.attr="disabled"
-                wire:target="ajouterAuPanier({{ $produit->id }})"
-                class="group relative bg-white/10 backdrop-blur-md rounded-2xl p-5 hover:bg-white/20 transition-all duration-300 border border-white/20 hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/20 transform hover:-translate-y-2 {{ (optional($variant)->stock !== null && optional($variant)->stock <= 0) ? 'opacity-50 cursor-not-allowed' : '' }}">
-            
-            {{-- Effet de brillance au survol --}}
-            <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
-            {{-- Badge stock amélioré --}}
-@if(optional($variant)->stock !== null)
-    @if($variant->stock <= 0)
-        {{-- Stock épuisé --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
-            Épuisé
-        </span>
-    @elseif($variant->stock <= 5)
-        {{-- Stock faible (alerte) --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 animate-pulse">
-            {{ $variant->stock }} restants
-        </span>
-    @elseif($variant->stock <= 10)
-        {{-- Stock moyen --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
-            {{ $variant->stock }} en stock
-        </span>
-    @else
-        {{-- Stock bon --}}
-        <span class="absolute top-3 right-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
-            {{ $variant->stock }} disponibles
-        </span>
-    @endif
-@else
-    {{-- Pas de gestion de stock pour ce produit --}}
-    <span class="absolute top-3 right-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
-        Disponible
-    </span>
-@endif
-
-            {{-- Image produit avec gestion d'erreur --}}
-            <div class="relative aspect-square bg-gradient-to-br from-purple-400 via-pink-400 to-purple-500 rounded-xl mb-4 flex items-center justify-center text-5xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-shadow duration-300">
-                @if($produit->image)
-                    <img src="{{ asset('storage/' . $produit->image) }}" 
-                         alt="{{ $produit->nom }}" 
-                         class="w-full h-full object-cover rounded-xl transform group-hover:scale-110 transition-transform duration-500"
-                         onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    {{-- Image par défaut si erreur de chargement --}}
-                    <div class="hidden w-full h-full items-center justify-center transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
-                        <span class="text-6xl">
-                            @if($produit->categorie)
-                                @switch(strtolower($produit->categorie->nom))
-                                    @case('glace')
-                                    @case('glaces')
-                                        🍦
-                                        @break
-                                    @case('boisson')
-                                    @case('boissons')
-                                        🥤
-                                        @break
-                                    @case('dessert')
-                                    @case('desserts')
-                                        🍰
-                                        @break
-                                    @case('snack')
-                                    @case('snacks')
-                                        🍿
-                                        @break
-                                    @default
-                                        🍽️
-                                @endswitch
-                            @else
-                                🍽️
-                            @endif
-                        </span>
-                    </div>
-                @else
-                    {{-- Pas d'image : afficher emoji par défaut --}}
-                    <span class="transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500 text-6xl">
-                        @if($produit->categorie)
-                            @switch(strtolower($produit->categorie->nom))
-                                @case('glace')
-                                @case('glaces')
-                                    🍦
-                                    @break
-                                @case('boisson')
-                                @case('boissons')
-                                    🥤
-                                    @break
-                                @case('dessert')
-                                @case('desserts')
-                                    🍰
-                                    @break
-                                @case('snack')
-                                @case('snacks')
-                                    🍿
-                                    @break
-                                @default
-                                    🍽️
-                            @endswitch
-                        @else
-                            🍽️
-                        @endif
-                    </span>
-                @endif
-                <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
-
-           {{-- Infos produit --}}
-<div class="relative z-10">
-    <h3 class="font-bold text-base text-white mb-2 group-hover:text-purple-300 transition line-clamp-2">{{ $produit->nom }}</h3>
-    <div class="flex items-center justify-between">
-        <p class="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">{{ number_format(optional($variant)->prix ?? 0, 0, ',', ' ') }}</p>
-        <span class="text-xs text-purple-300 font-semibold">FCFA</span>
-    </div>
-    
-    {{-- AJOUTE CETTE NOUVELLE SECTION ICI --}}
-    {{-- Barre de stock visuelle --}}
-    @if(optional($variant)->stock !== null)
-        <div class="mt-3 space-y-1">
-            <div class="flex items-center justify-between text-xs">
-                <span class="text-purple-300 font-medium">Stock</span>
-                <span class="font-bold {{ $variant->stock <= 5 ? 'text-red-400' : ($variant->stock <= 10 ? 'text-yellow-400' : 'text-emerald-400') }}">
-                    {{ $variant->stock }}
+        @foreach($produit->variants as $variant)
+            <button wire:click="ajouterAuPanier({{ $produit->id }}, {{ $variant->id }})"
+                    wire:loading.attr="disabled"
+                    wire:target="ajouterAuPanier({{ $produit->id }}, {{ $variant->id }})"
+                    class="group relative bg-white/10 backdrop-blur-md rounded-2xl p-5 hover:bg-white/20 transition-all duration-300 border border-white/20 hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/20 transform hover:-translate-y-2 {{ ($variant->gerer_stock && $variant->stock <= 0) ? 'opacity-50 cursor-not-allowed' : '' }}">
+                
+                {{-- Effet de brillance au survol --}}
+                <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {{-- Badge variante (en haut à gauche) --}}
+                <span class="absolute top-3 left-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 flex items-center gap-1">
+                    <i class="fas fa-tag"></i>
+                    {{ $variant->nom }}
                 </span>
-            </div>
-            {{-- Barre de progression --}}
-            @php
-                // Calculer le pourcentage (max 50 pour l'échelle)
-                $maxStock = 50;
-                $percentage = min(100, ($variant->stock / $maxStock) * 100);
-            @endphp
-            <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-500 {{ $variant->stock <= 5 ? 'bg-gradient-to-r from-red-500 to-rose-600' : ($variant->stock <= 10 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-emerald-500 to-green-600') }}"
-                     style="width: {{ $percentage }}%">
-                </div>
-            </div>
-        </div>
-    @endif
-</div>
 
-            {{-- Loading indicator --}}
-            <div wire:loading wire:target="ajouterAuPanier({{ $produit->id }})" 
-                 class="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
-                <div class="relative">
-                    <div class="w-12 h-12 border-4 border-purple-400/30 border-t-purple-400 rounded-full animate-spin"></div>
-                    <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-pink-400 rounded-full animate-spin" style="animation-duration: 1.5s; animation-direction: reverse;"></div>
-                </div>
-            </div>
+                {{-- Badge stock (en haut à droite) --}}
+                @php
+                    $gererStock = $variant->gerer_stock ?? false;
+                    $seuilAlerte = $variant->seuil_alerte ?? 10;
+                @endphp
 
-            {{-- Bouton d'ajout au survol --}}
-            <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                <div class="bg-gradient-to-r from-emerald-500 to-green-600 p-2 rounded-lg shadow-lg">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                    </svg>
+                @if($gererStock)
+                    @if($variant->stock <= 0)
+                        <span class="absolute top-3 right-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10">
+                            <i class="fas fa-ban"></i> Épuisé
+                        </span>
+                    @elseif($variant->stock <= $seuilAlerte)
+                        <span class="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg z-10 animate-pulse">
+                            <i class="fas fa-exclamation-triangle"></i> {{ $variant->stock }}
+                        </span>
+                    @endif
+                @endif
+
+                {{-- Image produit --}}
+                <div class="relative aspect-square bg-gradient-to-br from-purple-400 via-pink-400 to-purple-500 rounded-xl mb-4 flex items-center justify-center text-5xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-shadow duration-300 mt-6">
+                    @if($produit->image)
+                        <img src="{{ asset('storage/' . $produit->image) }}" 
+                             alt="{{ $produit->nom }}" 
+                             class="w-full h-full object-cover rounded-xl transform group-hover:scale-110 transition-transform duration-500"
+                             onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="hidden w-full h-full items-center justify-center">
+                            <span class="text-6xl">🍦</span>
+                        </div>
+                    @else
+                        @if($produit->categorie->nom === 'Boissons')
+                            <span class="text-6xl">🥤</span>
+                        @elseif($produit->categorie->nom === 'Glaces')
+                            <span class="text-6xl">🍦</span>
+                        @elseif($produit->categorie->nom === 'Cookies')
+                            <span class="text-6xl">🍪</span>
+                        @elseif($produit->categorie->nom === 'Bubble Waffle')  
+                            <span class="text-6xl">🧇</span>
+                        @endif 
+                    @endif
                 </div>
-            </div>
-        </button>
+
+                {{-- Infos produit + variante --}}
+                <div class="relative z-10">
+                    <h3 class="font-bold text-base text-white mb-1 group-hover:text-purple-300 transition line-clamp-1">
+                        {{ $produit->nom }}
+                    </h3>
+                    
+                    {{-- Prix avec étiquette variante --}}
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <p class="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+                                {{ number_format($variant->prix, 0, ',', ' ') }}
+                            </p>
+                            <span class="text-xs text-purple-400 font-medium">{{ $variant->nom }}</span>
+                        </div>
+                        <span class="text-xs text-purple-300 font-semibold">FCFA</span>
+                    </div>
+
+                    {{-- Barre de stock --}}
+                    @if($gererStock)
+                        <div class="mt-3 space-y-1">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-purple-300 font-medium flex items-center gap-1">
+                                    <i class="fas fa-box text-xs"></i> Stock
+                                </span>
+                                <span class="font-bold {{ $variant->stock <= 0 ? 'text-red-400' : ($variant->stock <= $seuilAlerte ? 'text-orange-400 animate-pulse' : 'text-emerald-400') }}">
+                                    {{ $variant->stock }}
+                                </span>
+                            </div>
+                            
+                            @php
+                                $maxStock = $seuilAlerte * 3;
+                                $percentage = $maxStock > 0 ? min(100, ($variant->stock / $maxStock) * 100) : 0;
+                            @endphp
+                            <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-500 {{ $variant->stock <= 0 ? 'bg-gray-500' : ($variant->stock <= $seuilAlerte ? 'bg-gradient-to-r from-red-500 to-rose-600' : 'bg-gradient-to-r from-emerald-500 to-green-600') }}"
+                                     style="width: {{ $percentage }}%">
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="mt-3">
+                            <div class="flex items-center justify-between px-3 py-2 bg-green-500/20 rounded-lg border border-green-500/30">
+                                <span class="text-green-300 font-medium flex items-center gap-2 text-xs">
+                                    <i class="fas fa-infinity text-sm"></i> Disponible
+                                </span>
+                                <span class="text-green-400 font-bold text-xs">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Loading indicator --}}
+                <div wire:loading wire:target="ajouterAuPanier({{ $produit->id }}, {{ $variant->id }})" 
+                     class="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
+                    <div class="relative">
+                        <div class="w-12 h-12 border-4 border-purple-400/30 border-t-purple-400 rounded-full animate-spin"></div>
+                    </div>
+                </div>
+
+                {{-- Bouton d'ajout --}}
+                <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                    <div class="bg-gradient-to-r from-emerald-500 to-green-600 p-2 rounded-lg shadow-lg">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                </div>
+            </button>
+        @endforeach
     @empty
         <div class="col-span-full text-center py-20">
             <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-12 border border-white/10">
@@ -773,6 +741,23 @@
                                     </span>
                                 </div>
                             </button>
+                            {{-- Dans ecran-caisse.blade.php, remplacer le bouton de test --}}
+<div class="flex gap-3">
+    <button onclick="window.ticketPrinter.print(1, 'direct')" 
+            class="bg-blue-500 text-white px-4 py-2 rounded">
+        🖨️ Test Direct (iframe)
+    </button>
+    
+    <button onclick="window.ticketPrinter.print(1, 'silent')" 
+            class="bg-purple-500 text-white px-4 py-2 rounded">
+        🖨️ Test Silent (popup)
+    </button>
+    
+    <button onclick="window.ticketPrinter.print(1, 'browser')" 
+            class="bg-green-500 text-white px-4 py-2 rounded">
+        🖨️ Test Browser (onglet)
+    </button>
+</div>
                         </div>
                     @endif
                 </div>
@@ -968,16 +953,57 @@
 @endpush
 @script
 <script>
-// Gestion du mode offline
+// ==========================================
+// IMPRESSION AUTOMATIQUE APRÈS VALIDATION
+// ==========================================
+
+// Écouter l'événement de validation de vente
+$wire.on('vente-validee', async (event) => {
+    console.log('🎉 Événement vente-validee reçu:', event);
+    
+    // Vérifier que l'ID de vente existe
+    if (!event.venteId && !event[0]?.venteId) {
+        console.error('❌ ID de vente manquant dans l\'événement');
+        return;
+    }
+    
+    const venteId = event.venteId || event[0]?.venteId;
+    console.log(`🖨️ Démarrage impression pour vente #${venteId}`);
+    
+    // Attendre 500ms pour que le modal s'affiche
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    try {
+        // Essayer l'impression directe (iframe)
+        console.log('📋 Tentative impression directe...');
+        const result = await window.ticketPrinter.print(venteId, 'direct');
+        
+        if (result.success) {
+            console.log('✅ Impression directe réussie');
+        } else {
+            console.warn('⚠️ Impression directe échouée, essai méthode silencieuse...');
+            await window.ticketPrinter.print(venteId, 'silent');
+        }
+        
+    } catch (error) {
+        console.error('❌ Erreur impression automatique:', error);
+        console.log('ℹ️ Fallback : Ouverture dans un nouvel onglet...');
+        
+        // En dernier recours, ouvrir dans un onglet
+        await window.ticketPrinter.print(venteId, 'browser');
+    }
+});
+
+// ==========================================
+// GESTION DU MODE OFFLINE (ton code existant)
+// ==========================================
 let isOfflineMode = !navigator.onLine;
 
-// Vérifier le statut
 function checkOfflineStatus() {
     isOfflineMode = !navigator.onLine;
     $wire.call('updateOfflineStatus', isOfflineMode);
 }
 
-// Écouter les changements
 window.addEventListener('online', () => {
     isOfflineMode = false;
     $wire.call('updateOfflineStatus', false);
@@ -990,7 +1016,6 @@ window.addEventListener('offline', () => {
     console.log('🔴 Mode hors ligne');
 });
 
-// Vérifier au chargement
 checkOfflineStatus();
 
 // Écouter la sauvegarde offline
@@ -1004,7 +1029,6 @@ $wire.on('save-offline-vente', async (event) => {
         const id = await window.offlineSync.enregistrerVentePending(event.venteData);
         console.log('✅ Vente sauvegardée localement:', id);
         
-        // Vérifier le nombre de ventes en attente
         const ventes = await window.offlineSync.getVentesPending();
         $wire.set('ventesPendingCount', ventes.length);
         
@@ -1014,162 +1038,281 @@ $wire.on('save-offline-vente', async (event) => {
     }
 });
 
-// Écouter la synchronisation réussie
 $wire.on('ventes-synchronisees', () => {
     $wire.call('$refresh');
 });
-    // Écouter l'événement de vente validée pour impression
-    $wire.on('vente-validee', (event) => {
-        console.log('Vente validée, ID:', event.venteId);
-        
-        // Animation de succès (si vous avez la lib confetti)
-        // confetti({
-        //     particleCount: 100,
-        //     spread: 70,
-        //     origin: { y: 0.6 }
-        // });
-        
-        try {
-            // Imprimer automatiquement
-            await window.ticketPrinter.print(event.venteId, 'browser');
+
+// ==========================================
+// ANIMATIONS ET HORLOGE (ton code existant)
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const elements = document.querySelectorAll('[class*="animate"]');
+    elements.forEach((el, index) => {
+        el.style.animationDelay = `${index * 0.05}s`;
+    });
+});
+
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('fr-FR', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    const timeElement = document.getElementById('current-time');
+    if (timeElement) {
+        timeElement.textContent = timeString;
+    }
+}
+
+updateTime();
+setInterval(updateTime, 1000);
+
+// Indicateur offline (ton code Alpine.js existant)
+function offlineIndicator() {
+    return {
+        isOnline: navigator.onLine,
+        isSyncing: false,
+        pendingCount: 0,
+        showToast: false,
+        toastMessage: '',
+
+        init() {
+            window.addEventListener('online', () => this.handleOnline());
+            window.addEventListener('offline', () => this.handleOffline());
+            this.checkPendingVentes();
+            setInterval(() => this.checkPendingVentes(), 30000);
+        },
+
+        async handleOnline() {
+            this.isOnline = true;
+            this.showNotification('Connexion rétablie ! Synchronisation en cours...');
+            setTimeout(() => this.syncNow(), 2000);
+        },
+
+        handleOffline() {
+            this.isOnline = false;
+            this.showNotification('Mode hors ligne activé. Les ventes seront synchronisées plus tard.');
+        },
+
+        async checkPendingVentes() {
+            if (!window.offlineSync) return;
             
-            // Ou demander à l'utilisateur
-            // const method = confirm('Utiliser une imprimante Bluetooth ?') ? 'bluetooth' : 'browser';
-            // await window.ticketPrinter.print(event.venteId, method);
-        } catch (error) {
-            console.error('Erreur impression:', error);
-            alert('Erreur lors de l\'impression du ticket');
-        }
-    });
-
-    // Écouter l'événement de réimpression
-    $wire.on('reimprimer-ticket', (event) => {
-        console.log('Réimprimer ticket, ID:', event.venteId);
-        try {
-            await window.ticketPrinter.print(event.venteId);
-        } catch (error) {
-            console.error('Erreur réimpression:', error);
-            alert('Erreur lors de la réimpression');
-        }
-    });
-
-    // Son et animation de confirmation lors de l'ajout au panier
-    $wire.on('produit-ajoute', () => {
-        // Animation subtile
-        const button = event.target.closest('button');
-        if (button) {
-            button.classList.add('scale-95');
-            setTimeout(() => button.classList.remove('scale-95'), 100);
-        }
-        
-        // Optionnel: jouer un son
-        // new Audio('/sounds/beep.mp3').play();
-    });
-    
-    // Animation au chargement de la page
-    document.addEventListener('DOMContentLoaded', () => {
-        const elements = document.querySelectorAll('[class*="animate"]');
-        elements.forEach((el, index) => {
-            el.style.animationDelay = `${index * 0.05}s`;
-        });
-    });
-
-    // Horloge en temps réel
-    function updateTime() {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('fr-FR', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        const timeElement = document.getElementById('current-time');
-        if (timeElement) {
-            timeElement.textContent = timeString;
-        }
-    }
-    
-    updateTime();
-    setInterval(updateTime, 1000);
-
-    // Fonction Alpine.js pour l'indicateur offline
-    function offlineIndicator() {
-        return {
-            isOnline: navigator.onLine,
-            isSyncing: false,
-            pendingCount: 0,
-            showToast: false,
-            toastMessage: '',
-
-            init() {
-                // Écouter les changements de connexion
-                window.addEventListener('online', () => this.handleOnline());
-                window.addEventListener('offline', () => this.handleOffline());
-
-                // Vérifier les ventes en attente
-                this.checkPendingVentes();
-                
-                // Vérifier périodiquement
-                setInterval(() => this.checkPendingVentes(), 30000); // Toutes les 30s
-            },
-
-            async handleOnline() {
-                this.isOnline = true;
-                this.showNotification('Connexion rétablie ! Synchronisation en cours...');
-                
-                // Attendre un peu pour stabiliser la connexion
-                setTimeout(() => this.syncNow(), 2000);
-            },
-
-            handleOffline() {
-                this.isOnline = false;
-                this.showNotification('Mode hors ligne activé. Les ventes seront synchronisées plus tard.');
-            },
-
-            async checkPendingVentes() {
-                if (!window.offlineSync) return;
-                
-                try {
-                    const ventes = await window.offlineSync.getVentesPending();
-                    this.pendingCount = ventes.length;
-                } catch (error) {
-                    console.error('Erreur check pending:', error);
-                }
-            },
-
-            async syncNow() {
-                if (!this.isOnline || this.isSyncing || !window.offlineSync) return;
-
-                this.isSyncing = true;
-                
-                try {
-                    const result = await window.offlineSync.synchroniserVentes();
-                    
-                    if (result.success && result.synced > 0) {
-                        this.showNotification(`${result.synced} vente(s) synchronisée(s) avec succès !`);
-                        await this.checkPendingVentes();
-                        
-                        // Recharger les données
-                        if (window.Livewire) {
-                            window.Livewire.dispatch('ventes-synchronisees');
-                        }
-                    }
-                } catch (error) {
-                    console.error('Erreur sync:', error);
-                    this.showNotification('Erreur lors de la synchronisation');
-                } finally {
-                    this.isSyncing = false;
-                }
-            },
-
-            showNotification(message) {
-                this.toastMessage = message;
-                this.showToast = true;
-                setTimeout(() => {
-                    this.showToast = false;
-                }, 4000);
+            try {
+                const ventes = await window.offlineSync.getVentesPending();
+                this.pendingCount = ventes.length;
+            } catch (error) {
+                console.error('Erreur check pending:', error);
             }
+        },
+
+        async syncNow() {
+            if (!this.isOnline || this.isSyncing || !window.offlineSync) return;
+
+            this.isSyncing = true;
+            
+            try {
+                const result = await window.offlineSync.synchroniserVentes();
+                
+                if (result.success && result.synced > 0) {
+                    this.showNotification(`${result.synced} vente(s) synchronisée(s) avec succès !`);
+                    await this.checkPendingVentes();
+                    
+                    if (window.Livewire) {
+                        window.Livewire.dispatch('ventes-synchronisees');
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur sync:', error);
+                this.showNotification('Erreur lors de la synchronisation');
+            } finally {
+                this.isSyncing = false;
+            }
+        },
+
+        showNotification(message) {
+            this.toastMessage = message;
+            this.showToast = true;
+            setTimeout(() => {
+                this.showToast = false;
+            }, 4000);
         }
     }
+}
 </script>
 @endscript
+
+<script>
+// ==========================================
+// SYSTÈME DE DÉFILEMENT DES CATÉGORIES
+// ==========================================
+
+// Fonction de défilement des catégories
+function scrollCategories(direction) {
+    const container = document.getElementById('categories-container');
+    const scrollAmount = 300; // Distance de défilement en pixels
+    
+    if (!container) {
+        console.error('Conteneur des catégories introuvable');
+        return;
+    }
+    
+    if (direction === 'left') {
+        container.scrollBy({
+            left: -scrollAmount,
+            behavior: 'smooth'
+        });
+    } else if (direction === 'right') {
+        container.scrollBy({
+            left: scrollAmount,
+            behavior: 'smooth'
+        });
+    }
+}
+
+// Fonction pour vérifier et afficher/masquer les boutons de défilement
+function updateScrollButtons() {
+    const container = document.getElementById('categories-container');
+    const scrollLeft = document.getElementById('scroll-left');
+    const scrollRight = document.getElementById('scroll-right');
+    
+    if (!container || !scrollLeft || !scrollRight) {
+        console.warn('Éléments de scroll non trouvés');
+        return;
+    }
+    
+    // Vérifier si le conteneur a du contenu débordant
+    const hasOverflow = container.scrollWidth > container.clientWidth;
+    
+    if (!hasOverflow) {
+        // Pas de débordement, masquer les boutons
+        scrollLeft.classList.add('hidden');
+        scrollRight.classList.add('hidden');
+        return;
+    }
+    
+    // Il y a du débordement, gérer l'affichage des boutons
+    const isAtStart = container.scrollLeft <= 10;
+    const isAtEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 10;
+    
+    // Bouton gauche : visible si on n'est pas au début
+    if (isAtStart) {
+        scrollLeft.classList.add('hidden');
+    } else {
+        scrollLeft.classList.remove('hidden');
+    }
+    
+    // Bouton droit : visible si on n'est pas à la fin
+    if (isAtEnd) {
+        scrollRight.classList.add('hidden');
+    } else {
+        scrollRight.classList.remove('hidden');
+    }
+}
+
+// Initialiser au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎯 Initialisation du système de défilement des catégories');
+    
+    const container = document.getElementById('categories-container');
+    
+    if (container) {
+        // Vérifier initialement
+        setTimeout(updateScrollButtons, 100);
+        
+        // Écouter le défilement pour mettre à jour les boutons
+        container.addEventListener('scroll', updateScrollButtons);
+        
+        // Écouter le redimensionnement de la fenêtre
+        window.addEventListener('resize', () => {
+            setTimeout(updateScrollButtons, 100);
+        });
+        
+        // Observer les changements de contenu (pour Livewire)
+        const observer = new MutationObserver(() => {
+            setTimeout(updateScrollButtons, 100);
+        });
+        
+        observer.observe(container, { 
+            childList: true, 
+            subtree: true,
+            attributes: true
+        });
+        
+        console.log('✅ Système de défilement initialisé');
+    } else {
+        console.warn('⚠️ Conteneur des catégories non trouvé au chargement');
+    }
+});
+
+// Pour Livewire : réinitialiser après chaque mise à jour
+if (window.Livewire) {
+    document.addEventListener('livewire:navigated', function() {
+        console.log('🔄 Livewire navigated - mise à jour des boutons');
+        setTimeout(updateScrollButtons, 200);
+    });
+    
+    // Hook Livewire v3
+    if (typeof Livewire.hook === 'function') {
+        Livewire.hook('morph.updated', () => {
+            console.log('🔄 Livewire morph updated');
+            setTimeout(updateScrollButtons, 200);
+        });
+    }
+    
+    // Alternative pour Livewire v2
+    if (typeof Livewire.on === 'function') {
+        Livewire.on('contentChanged', () => {
+            console.log('🔄 Content changed');
+            setTimeout(updateScrollButtons, 200);
+        });
+    }
+}
+
+// Ajouter une classe CSS pour masquer la scrollbar horizontale par défaut
+const style = document.createElement('style');
+style.textContent = `
+    .categories-scroll {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE et Edge */
+    }
+    
+    .categories-scroll::-webkit-scrollbar {
+        display: none; /* Chrome, Safari et Opera */
+    }
+    
+    /* Afficher la scrollbar au survol pour debug */
+    .categories-scroll:hover::-webkit-scrollbar {
+        display: block;
+        height: 4px;
+    }
+    
+    .categories-scroll:hover::-webkit-scrollbar-thumb {
+        background: rgba(168, 85, 247, 0.5);
+        border-radius: 4px;
+    }
+    
+    /* Animation des boutons */
+    #scroll-left, #scroll-right {
+        transition: all 0.3s ease;
+    }
+    
+    #scroll-left:not(.hidden), #scroll-right:not(.hidden) {
+        animation: fadeInScale 0.3s ease;
+    }
+    
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+
 </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Dashboard' }} - Milla Ice Cream Admin</title>
+    <title>{{ $title ?? 'Dashboard' }} - Mila Ice Cream Admin</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <livewire:styles />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -274,7 +274,7 @@
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs sm:text-sm text-gray-600">
                     <p class="flex items-center gap-2">
                         <i class="fas fa-ice-cream text-cyan-500"></i>
-                        &copy; {{ date('Y') }} Milla Ice Cream. Tous droits réservés.
+                        &copy; {{ date('Y') }} Mila Ice Cream. Tous droits réservés.
                     </p>
                     <p class="text-gray-500">Version 1.0.0</p>
                 </div>
@@ -309,7 +309,7 @@
         });
 
         // Animation d'écriture du nom de l'entreprise
-        const brandText = "Milla Ice Cream";
+        const brandText = "Mila Ice Cream";
         const brandElement = document.getElementById('brandName');
         const cursor = document.getElementById('cursor');
         const brandContainer = document.getElementById('brandContainer');

@@ -16,6 +16,7 @@ class Variant extends Model
         'seuil_alerte',
         'active',
         'gerer_stock',
+        'gerer_stock' 
     ];
 
     public function produit()

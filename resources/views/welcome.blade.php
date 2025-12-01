@@ -20,6 +20,7 @@
                     <img src="{{ asset('images/logo.jpg') }}" alt="Glacier Pro Logo" class="logo-image">
                 </div>
                 <span class="logo-text">Milla Ice Cream</span>
+                <span class="logo-text">Mila Ice Cream</span>
             </div>
         
         <nav class="nav-links">
@@ -387,9 +388,9 @@
                 <h3>Appelez-nous</h3>
                 <p class="contact-info">
                     <strong>Standard:</strong><br>
-                    +226 25 12 34 56
+                    +226 77 04 53 15
                 </p>
-                <a href="https://wa.me/22625123456" target="_blank" class="whatsapp-btn">
+                <a href="https://wa.me/22663840909" target="_blank" class="whatsapp-btn">
                     <i class="fab fa-whatsapp"></i>
                     Discuter sur WhatsApp
                 </a>
@@ -423,6 +424,7 @@
                     <img src="{{ asset('images/logo.jpg') }}" alt="Glacier Pro Logo" class="logo-image">
                 </div>
                 <span class="logo-text">Milla Ice Cream</span>
+                <span class="logo-text">Mila Ice Cream</span>
             </div>
 
             <div class="footer-links">
@@ -441,6 +443,8 @@
                 </p>
                 <p style="margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.6;">
                     Développé par Junior OUEDRAOGO & Josias DJIOLGOU
+                    Developpé par <a href="https://josi1st.vercel.app/" target="_blank" style="color: #10b981; text-decoration: underline;">Josias DJIOLGOU</a>
+                    & <a href="https://github.com/Ouedraogo-junior/" target="_blank" style="color: #10b981; text-decoration: underline;">Omar OUEDRAOGO</a>
                 </p>
             </div>
         </div>

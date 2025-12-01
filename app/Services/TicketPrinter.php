@@ -77,8 +77,16 @@ class TicketPrinter
 
         try {
             // Créer un connecteur vers l'imprimante
-            // Pour test, on utilise un buffer
-            $connector = new \Mike42\Escpos\PrintConnectors\DummyPrintConnector();
+            // Pour USB (recommandé pour test local)
+            //$connector = new \Mike42\Escpos\PrintConnectors\FilePrintConnector("/dev/usb/lp0");
+            // Ou sur Windows
+            //$connector = new \Mike42\Escpos\PrintConnectors\WindowsPrintConnector("POS-80");
+
+            // Pour Ethernet/Réseau (si imprimante connectée en IP)
+            $connector = new \Mike42\Escpos\PrintConnectors\NetworkPrintConnector("192.168.123.100", 9100);
+
+            // Pour Serial
+            //$connector = new \Mike42\Escpos\PrintConnectors\SerialPrintConnector("/dev/ttyUSB0");
             $printer = new \Mike42\Escpos\Printer($connector);
 
             // Header
@@ -164,7 +172,7 @@ class TicketPrinter
         return [
             'nom' => config('app.nom_entreprise', 'GLACIER MILA'),
             'adresse' => config('app.adresse_entreprise', 'Ouagadougou, Burkina Faso'),
-            'telephone' => config('app.tel_entreprise', '+226 XX XX XX XX'),
+            'telephone' => config('app.tel_entreprise', '+226 63 84 09 09'),
             'email' => config('app.email_entreprise', 'contact@glacier.bf'),
             'message_footer' => config('app.message_ticket', 'Au plaisir de vous revoir !'),
             'logo' => config('app.logo_entreprise', null),

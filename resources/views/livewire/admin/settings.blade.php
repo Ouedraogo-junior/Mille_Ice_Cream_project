@@ -7,7 +7,7 @@
                 <h1 class="text-4xl font-bold text-gray-800">Paramètres</h1>
                 <p class="text-gray-500 mt-2">
                     @can('admin')
-                        Personnalisez votre expérience Milla Ice Cream
+                        Personnalisez votre expérience Mila Ice Cream
                     @endcan
                 </p>
             </div>
@@ -80,11 +80,11 @@
                             <span>Modifier mon profil</span>
                         </a>
 
-                        <a href="{{ route('user-password.edit') }}" 
+                        <!-- <a href="{{ route('user-password.edit') }}" 
                            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all">
                             <i class="fas fa-lock"></i>
                             <span>Changer mon mot de passe</span>
-                        </a>
+                        </a> -->
                     </div>
                 </div>
             @endif
